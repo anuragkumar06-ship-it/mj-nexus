@@ -6,8 +6,9 @@ import { isSupabaseConfigured } from "@/lib/config";
 
 interface RecruitmentCtx {
   candidates: Candidate[];
-  addCandidate: (c: Candidate) => void;
+  addCandidate: (c: Candidate) => Promise<void>;
   removeCandidate: (id: string) => void;
+  setCandidateStage: (id: string, stage: Candidate["stage"]) => void;
   live: boolean;
 }
 
@@ -44,9 +45,17 @@ export function RecruitmentProvider({ children }: { children: ReactNode }) {
     return () => unsub();
   }, [live]);
 
-  const addCandidate = (c: Candidate) => {
+  const addCandidate = async (c: Candidate) => {
     setCandidates((prev) => [c, ...prev]);
-    if (live) import("@/lib/supabase/recruitment-data").then((m) => m.insertCandidate(c)).catch(() => {});
+    if (!live) return;
+    try {
+      const m = await import("@/lib/supabase/recruitment-data");
+      await m.insertCandidate(c);
+    } catch (e) {
+      // DB rejected it (e.g. recruitment migration not run) — roll back + let caller surface it.
+      setCandidates((prev) => prev.filter((x) => x.id !== c.id));
+      throw e;
+    }
   };
 
   const removeCandidate = (id: string) => {
@@ -54,7 +63,12 @@ export function RecruitmentProvider({ children }: { children: ReactNode }) {
     if (live) import("@/lib/supabase/recruitment-data").then((m) => m.deleteCandidate(id)).catch(() => {});
   };
 
-  return <Ctx.Provider value={{ candidates, addCandidate, removeCandidate, live }}>{children}</Ctx.Provider>;
+  const setCandidateStage = (id: string, stage: Candidate["stage"]) => {
+    setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, stage } : c)));
+    if (live) import("@/lib/supabase/recruitment-data").then((m) => m.updateCandidateStage(id, stage)).catch(() => {});
+  };
+
+  return <Ctx.Provider value={{ candidates, addCandidate, removeCandidate, setCandidateStage, live }}>{children}</Ctx.Provider>;
 }
 
 export function useRecruitment() {

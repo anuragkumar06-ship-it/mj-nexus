@@ -7,6 +7,7 @@ import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { FileDropzone } from "@/components/app/upload";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { usePeople } from "@/components/app/people";
@@ -14,6 +15,7 @@ import { CertificatesProvider, useCertificates } from "@/components/dashboard/ce
 import { CertificatePreview, downloadCert } from "@/components/dashboard/certificates/certificate-preview";
 import { CERT_TYPES, certTitle, defaultMessage, type Certificate, type CertType } from "@/lib/certificates";
 import { initials, type Person } from "@/lib/org";
+import type { Attachment } from "@/components/app/store";
 import { burstConfetti } from "@/lib/confetti";
 
 const textareaClass =
@@ -245,6 +247,8 @@ function IssueModal({ open, onClose, people, issuer, onIssue }: { open: boolean;
   const [title, setTitle] = useState(certTitle("Completion"));
   const [message, setMessage] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [mode, setMode] = useState<"make" | "upload">("make");
+  const [file, setFile] = useState<Attachment[]>([]);
 
   const recipient = people.find((p) => p.id === recipientId);
 
@@ -278,13 +282,42 @@ function IssueModal({ open, onClose, people, issuer, onIssue }: { open: boolean;
       toast({ title: "Pick a recipient", type: "error" });
       return;
     }
-    onIssue({ id: uuid(), recipientId, recipientName: recipient.name, type, title: title.trim() || certTitle(type), message: message.trim(), issuedBy: issuer.id, issuedByName: issuer.name, status: "Issued" });
+    if (mode === "upload" && !file[0]?.url) {
+      toast({ title: "Upload a certificate file", type: "error" });
+      return;
+    }
+    onIssue({
+      id: uuid(),
+      recipientId,
+      recipientName: recipient.name,
+      type,
+      title: title.trim() || certTitle(type),
+      message: mode === "make" ? message.trim() : "",
+      issuedBy: issuer.id,
+      issuedByName: issuer.name,
+      status: "Issued",
+      fileUrl: mode === "upload" ? file[0]?.url : undefined,
+      fileName: mode === "upload" ? file[0]?.name : undefined,
+    });
     burstConfetti();
     toast({ title: "Certificate issued", description: `${recipient.name} · ${type}`, type: "success" });
     onClose();
   };
 
-  const preview: Certificate = { id: "preview", recipientId, recipientName: recipient?.name ?? "", type, title, message, issuedBy: issuer.id, issuedByName: issuer.name, status: "Issued", createdAt: "2026" };
+  const preview: Certificate = {
+    id: "preview",
+    recipientId,
+    recipientName: recipient?.name ?? "",
+    type,
+    title,
+    message,
+    issuedBy: issuer.id,
+    issuedByName: issuer.name,
+    status: "Issued",
+    createdAt: "2026",
+    fileUrl: mode === "upload" ? file[0]?.url : undefined,
+    fileName: mode === "upload" ? file[0]?.name : undefined,
+  };
 
   return (
     <Modal
@@ -300,16 +333,30 @@ function IssueModal({ open, onClose, people, issuer, onIssue }: { open: boolean;
           <div><label className={labelClass}>Recipient</label><select value={recipientId} onChange={(e) => setRecipientId(e.target.value)} className={fieldClass}>{people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
           <div><label className={labelClass}>Type</label><select value={type} onChange={(e) => setType(e.target.value as CertType)} className={fieldClass}>{CERT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
         </div>
-        <div><label className={labelClass}>Title</label><input value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} /></div>
-        <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className={labelClass + " mb-0"}>Message</label>
-            <button onClick={aiRewrite} disabled={aiLoading} className="flex items-center gap-1 rounded-full bg-mjblue-50 px-2.5 py-1 text-[11px] font-bold text-mjblue-700 transition-colors hover:bg-mjblue-100 disabled:opacity-60">
-              {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI rewrite
-            </button>
-          </div>
-          <textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className={textareaClass} />
+
+        <div className="flex rounded-full bg-navy/5 p-1">
+          <button type="button" onClick={() => setMode("make")} className={`flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === "make" ? "bg-white text-navy shadow-card" : "text-navy/50"}`}>Make with platform</button>
+          <button type="button" onClick={() => setMode("upload")} className={`flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === "upload" ? "bg-white text-navy shadow-card" : "text-navy/50"}`}>Upload my own</button>
         </div>
+
+        <div><label className={labelClass}>Title</label><input value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} /></div>
+
+        {mode === "make" ? (
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className={labelClass + " mb-0"}>Message</label>
+              <button onClick={aiRewrite} disabled={aiLoading} className="flex items-center gap-1 rounded-full bg-mjblue-50 px-2.5 py-1 text-[11px] font-bold text-mjblue-700 transition-colors hover:bg-mjblue-100 disabled:opacity-60">
+                {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI rewrite
+              </button>
+            </div>
+            <textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className={textareaClass} />
+          </div>
+        ) : (
+          <div>
+            <label className={labelClass}>Certificate file</label>
+            <FileDropzone files={file} onChange={setFile} max={1} accept="application/pdf,image/*" hint="Upload a PDF or image of the certificate" />
+          </div>
+        )}
         <div>
           <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400"><FileSignature className="h-3.5 w-3.5" /> Live preview</p>
           <CertificatePreview c={preview} name={recipient?.name ?? "Recipient"} />

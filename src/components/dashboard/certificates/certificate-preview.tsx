@@ -1,7 +1,7 @@
 "use client";
 
 import { Logo } from "@/components/shared/logo";
-import { BadgeCheck, Star } from "lucide-react";
+import { BadgeCheck, Star, FileText } from "lucide-react";
 import { downloadFile } from "@/lib/utils";
 import { isLetter, type Certificate } from "@/lib/certificates";
 
@@ -41,6 +41,10 @@ function buildSVG(name: string, c: Certificate, vid: string) {
 }
 
 export function downloadCert(c: Certificate, name: string) {
+  if (c.fileUrl) {
+    if (typeof window !== "undefined") window.open(c.fileUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
   const safe = name.replace(/\s+/g, "-");
   const typeSafe = c.type.replace(/\s+/g, "-");
   if (isLetter(c.type)) {
@@ -52,6 +56,36 @@ export function downloadCert(c: Certificate, name: string) {
 
 export function CertificatePreview({ c, name }: { c: Certificate; name: string }) {
   const letter = isLetter(c.type);
+  if (c.fileUrl) {
+    const isImg = /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(c.fileName ?? "");
+    return (
+      <div className="overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-card">
+        <div className="flex items-center justify-between border-b border-navy/5 p-4">
+          <div className="flex items-center gap-2">
+            <Logo theme="light" />
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{c.title}</span>
+          </div>
+          <BadgeCheck className="h-4 w-4 text-mjblue" />
+        </div>
+        {isImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={c.fileUrl} alt={c.fileName ?? "Certificate"} className="max-h-[420px] w-full bg-offwhite/60 object-contain" />
+        ) : (
+          <div className="flex items-center gap-3 p-6">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-mjblue-50 text-mjblue"><FileText className="h-6 w-6" /></div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-navy">{c.fileName ?? "Certificate file"}</p>
+              <p className="text-xs text-slate-500">Uploaded · {c.type} for {name}</p>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center justify-between p-4 text-xs text-slate-500">
+          <span className="font-medium text-navy">{name}</span>
+          <button onClick={() => window.open(c.fileUrl!, "_blank", "noopener,noreferrer")} className="font-semibold text-mjblue hover:underline">Open file</button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-navy p-6 text-white shadow-[0_30px_80px_-30px_rgba(5,11,61,0.7)] sm:p-9">
       <div className="absolute inset-0 grid-dark opacity-40" />

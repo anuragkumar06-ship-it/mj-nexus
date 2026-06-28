@@ -14,6 +14,8 @@ export interface Certificate {
   issuedByName: string;
   status: CertStatus;
   createdAt?: string;
+  fileUrl?: string;
+  fileName?: string;
 }
 
 export function certTitle(type: CertType): string {

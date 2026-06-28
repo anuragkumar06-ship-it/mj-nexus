@@ -40,7 +40,7 @@ export function AddCandidateButton() {
     setEnd("");
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     const c: Candidate = {
@@ -63,15 +63,24 @@ export function AddCandidateButton() {
       internStart: start || undefined,
       internEnd: end || undefined,
     };
-    addCandidate(c);
-    burstConfetti();
-    toast({
-      title: "Candidate added",
-      description: `${c.name} was added to the Applied stage with a ${c.fitScore} AI fit score.`,
-      type: "success",
-    });
-    reset();
-    setOpen(false);
+    addCandidate(c)
+      .then(() => {
+        burstConfetti();
+        toast({
+          title: "Candidate added",
+          description: `${c.name} was added to the Applied stage with a ${c.fitScore} AI fit score.`,
+          type: "success",
+        });
+        reset();
+        setOpen(false);
+      })
+      .catch(() => {
+        toast({
+          title: "Couldn't save candidate",
+          description: "Run supabase/migrate-recruitment.sql once in Supabase, then try again.",
+          type: "error",
+        });
+      });
   };
 
   return (

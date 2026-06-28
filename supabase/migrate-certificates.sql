@@ -15,8 +15,14 @@ create table if not exists public.certificates (
   issued_by text,
   issued_by_name text,
   status text default 'Issued',
+  file_url text,
+  file_name text,
   created_at timestamptz not null default now()
 );
+
+-- Uploaded certificate file (safe to re-run on an existing table)
+alter table public.certificates add column if not exists file_url text;
+alter table public.certificates add column if not exists file_name text;
 
 alter table public.certificates enable row level security;
 drop policy if exists cert_read on public.certificates;

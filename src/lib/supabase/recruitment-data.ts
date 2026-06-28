@@ -51,6 +51,10 @@ export async function deleteCandidate(id: string) {
   const { error } = await createClient().from("candidates").delete().eq("id", id);
   if (error) throw error;
 }
+export async function updateCandidateStage(id: string, stage: string) {
+  const { error } = await createClient().from("candidates").update({ stage }).eq("id", id);
+  if (error) throw error;
+}
 export async function insertInterview(i: Interview) {
   const { error } = await createClient().from("interviews").insert(ivToRow(i));
   if (error) throw error;

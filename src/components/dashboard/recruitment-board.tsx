@@ -64,12 +64,18 @@ function downloadCV(c: Candidate) {
 const isImageName = (n?: string) => /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(n ?? "");
 
 export function RecruitmentBoard() {
-  const { candidates: allCandidates, removeCandidate } = useRecruitment();
+  const { candidates: allCandidates, removeCandidate, setCandidateStage } = useRecruitment();
   const { toast } = useToast();
   const [role, setRole] = useState<(typeof roleFilters)[number]>("All");
   const [detail, setDetail] = useState<Candidate | null>(null);
   const filtered =
     role === "All" ? allCandidates : allCandidates.filter((c) => c.role === role);
+
+  const changeStage = (id: string, stage: Candidate["stage"]) => {
+    setCandidateStage(id, stage);
+    setDetail((prev) => (prev && prev.id === id ? { ...prev, stage } : prev));
+    toast({ title: "Stage updated", description: stage, type: "success" });
+  };
 
   const removeCand = (c: Candidate) => {
     if (typeof window !== "undefined" && !window.confirm(`Remove ${c.name} from the pipeline?`)) return;
@@ -198,7 +204,7 @@ export function RecruitmentBoard() {
         })}
       </div>
 
-      <CandidateModal candidate={detail} onClose={() => setDetail(null)} onRemove={removeCand} />
+      <CandidateModal candidate={detail} onClose={() => setDetail(null)} onRemove={removeCand} onStageChange={changeStage} />
     </div>
   );
 }
@@ -224,7 +230,7 @@ function CVSection({ title, children }: { title: string; children: ReactNode }) 
   );
 }
 
-function CandidateModal({ candidate: c, onClose, onRemove }: { candidate: Candidate | null; onClose: () => void; onRemove: (c: Candidate) => void }) {
+function CandidateModal({ candidate: c, onClose, onRemove, onStageChange }: { candidate: Candidate | null; onClose: () => void; onRemove: (c: Candidate) => void; onStageChange: (id: string, stage: Candidate["stage"]) => void }) {
   return (
     <Modal
       open={!!c}
@@ -257,6 +263,19 @@ function CandidateModal({ candidate: c, onClose, onRemove }: { candidate: Candid
               <p className={cn("rounded-xl px-3 py-1.5 text-lg font-bold", scoreTone(c.fitScore))}>{c.fitScore}</p>
               <p className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">AI fit</p>
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-navy/5 bg-white p-3">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pipeline stage</label>
+            <select
+              value={c.stage}
+              onChange={(e) => onStageChange(c.id, e.target.value as Candidate["stage"])}
+              className="h-10 w-full rounded-xl border border-navy/10 bg-white px-3 text-sm font-semibold text-navy outline-none transition-all focus:border-mjblue/50 focus:ring-4 focus:ring-mjblue/10"
+            >
+              {STAGE_META.map((s) => (
+                <option key={s.key} value={s.key}>{s.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">

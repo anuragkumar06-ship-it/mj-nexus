@@ -15,6 +15,8 @@ function fromRow(r: any): Certificate {
     issuedByName: r.issued_by_name ?? "",
     status: r.status ?? "Issued",
     createdAt: (r.created_at ?? "").slice(0, 10),
+    fileUrl: r.file_url ?? undefined,
+    fileName: r.file_name ?? undefined,
   };
 }
 function toRow(c: Certificate): any {
@@ -28,6 +30,8 @@ function toRow(c: Certificate): any {
     issued_by: c.issuedBy,
     issued_by_name: c.issuedByName,
     status: c.status,
+    file_url: c.fileUrl ?? null,
+    file_name: c.fileName ?? null,
   };
 }
 
