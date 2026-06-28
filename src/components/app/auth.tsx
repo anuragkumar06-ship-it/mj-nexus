@@ -143,8 +143,8 @@ function LiveAuth({ children }: { children: ReactNode }) {
             allowed = true;
           } else {
             const { data: cands, error } = await supabase.from("candidates").select("email");
-            if (error || !cands || cands.length === 0) allowed = true; // fail-open / allowlist not curated yet
-            else allowed = cands.some((c: { email?: string }) => (c.email ?? "").toLowerCase() === email);
+            if (error) allowed = true; // can't read the allowlist (table missing) — don't lock anyone out
+            else allowed = (cands ?? []).some((c: { email?: string }) => (c.email ?? "").toLowerCase() === email);
           }
         } catch {
           allowed = true;
