@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadCloud, X, FileText, Image as ImageIcon } from "lucide-react";
+import { UploadCloud, X, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 import type { Attachment } from "@/components/app/store";
+import { uploadFile } from "@/lib/supabase/storage";
 import { cn } from "@/lib/utils";
 
 function fmtBytes(b: number) {
@@ -26,16 +27,17 @@ export function FileDropzone({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const add = (list: FileList | null) => {
-    if (!list) return;
-    const next: Attachment[] = Array.from(list).map((f) => ({
-      name: f.name,
-      size: f.size,
-      type: f.type,
-      url: f.type.startsWith("image/") ? URL.createObjectURL(f) : undefined,
-    }));
-    onChange([...files, ...next].slice(0, max));
+  const add = async (list: FileList | null) => {
+    if (!list || list.length === 0) return;
+    setBusy(true);
+    try {
+      const uploaded = await Promise.all(Array.from(list).map((f) => uploadFile(f)));
+      onChange([...files, ...uploaded].slice(0, max));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const remove = (i: number) => onChange(files.filter((_, idx) => idx !== i));
@@ -62,10 +64,10 @@ export function FileDropzone({
         )}
       >
         <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-brand text-white">
-          <UploadCloud className="h-5 w-5" />
+          {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
         </div>
         <p className="text-sm font-semibold text-navy">
-          Drop files or <span className="text-mjblue">browse</span>
+          {busy ? "Uploading…" : <>Drop files or <span className="text-mjblue">browse</span></>}
         </p>
         <p className="text-xs text-slate-400">{hint}</p>
         <input

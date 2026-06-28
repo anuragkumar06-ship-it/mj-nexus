@@ -1,15 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { isSupabaseConfigured } from "@/lib/config";
 
 /* ---------------- Types ---------------- */
 export interface Attachment {
   name: string;
   size: number;
   type: string;
-  url?: string; // object URL for client previews
+  url?: string;
 }
-
 export type TaskStatus = "To Do" | "In Progress" | "Submitted" | "Approved";
 export type Priority = "Low" | "Medium" | "High";
 
@@ -26,7 +26,6 @@ export interface Task {
   tag: string;
   submissionId?: string;
 }
-
 export interface Submission {
   id: string;
   taskId: string;
@@ -37,7 +36,6 @@ export interface Submission {
   status: "Pending Review" | "Approved" | "Changes Requested";
   reviewNote?: string;
 }
-
 export interface Standup {
   id: string;
   internId: string;
@@ -46,7 +44,6 @@ export interface Standup {
   challenges: string;
   date: string;
 }
-
 export type ReqStatus = "Pending" | "Approved" | "Rejected";
 export interface ApprovalRequest {
   id: string;
@@ -60,7 +57,6 @@ export interface ApprovalRequest {
   files?: Attachment[];
   decisionNote?: string;
 }
-
 export interface Feedback {
   id: string;
   internId: string;
@@ -70,7 +66,7 @@ export interface Feedback {
   date: string;
 }
 
-/* ---------------- Seeds ---------------- */
+/* ---------------- Seeds (fallback + demo) ---------------- */
 const seedTasks: Task[] = [
   { id: "t1", title: "Draft Q3 social content calendar", assigneeId: "i1", assignerId: "l1", team: "Growth", status: "In Progress", priority: "High", due: "Jun 28", tag: "Content" },
   { id: "t2", title: "Launch landing-page hero A/B test", assigneeId: "i2", assignerId: "l1", team: "Growth", status: "Submitted", priority: "High", due: "Jun 27", tag: "Growth", submissionId: "sub1" },
@@ -83,19 +79,16 @@ const seedTasks: Task[] = [
   { id: "t9", title: "Competitor SEO audit", assigneeId: "i1", assignerId: "l1", team: "Growth", status: "To Do", priority: "Medium", due: "Jul 02", tag: "Growth" },
   { id: "t10", title: "Weekly performance report", assigneeId: "i2", assignerId: "l1", team: "Growth", status: "In Progress", priority: "Low", due: "Jun 30", tag: "Analytics" },
 ];
-
 const seedSubmissions: Submission[] = [
   { id: "sub1", taskId: "t2", internId: "i2", note: "A/B test is live — variant B lifted CTR by 14%. Dashboard screenshot attached.", files: [{ name: "ab-test-results.png", size: 184320, type: "image/png" }], submittedAt: "2026-06-26", status: "Pending Review" },
   { id: "sub2", taskId: "t3", internId: "i3", note: "Final brand refresh deck v3 attached.", files: [{ name: "brand-refresh-v3.pdf", size: 982400, type: "application/pdf" }], submittedAt: "2026-06-24", status: "Approved", reviewNote: "Excellent — ship it." },
   { id: "sub3", taskId: "t6", internId: "i6", note: "Updated scoring weights and added 2 new signals.", files: [{ name: "crm-scoring.png", size: 220160, type: "image/png" }], submittedAt: "2026-06-26", status: "Pending Review" },
 ];
-
 const seedStandups: Standup[] = [
   { id: "s1", internId: "i1", completed: "Shipped 6 social posts; finalized June report", priorities: "Q3 calendar, competitor audit", challenges: "Waiting on brand asset approvals", date: "Today" },
   { id: "s2", internId: "i2", completed: "Launched hero A/B test; +14% CTR", priorities: "Analyze variant data", challenges: "Sample size still small", date: "Today" },
   { id: "s3", internId: "i7", completed: "Screened 18 candidates; 5 shortlisted", priorities: "Schedule HR interviews", challenges: "Calendar conflicts with leads", date: "Today" },
 ];
-
 const seedRequests: ApprovalRequest[] = [
   { id: "r1", type: "Deadline Extension", title: "2-day extension on Q3 calendar", detail: "Brand assets are delayed — requesting 2 extra days to deliver the Q3 content calendar.", requesterId: "i1", approverId: "l1", status: "Pending", createdAt: "Today" },
   { id: "r2", type: "Leave", title: "Leave request — 2 days", detail: "Personal leave on Jun 30 and Jul 1.", requesterId: "i5", approverId: "l3", status: "Pending", createdAt: "Today" },
@@ -104,7 +97,6 @@ const seedRequests: ApprovalRequest[] = [
   { id: "r5", type: "Resource", title: "Canva Pro license", detail: "Requesting a Canva Pro seat for design tasks.", requesterId: "i7", approverId: "h1", status: "Pending", createdAt: "Today" },
   { id: "r6", type: "Leave", title: "Leave request — 1 day", detail: "Half-day on Jun 27.", requesterId: "i2", approverId: "l1", status: "Approved", createdAt: "2 days ago", decisionNote: "Approved — enjoy!" },
 ];
-
 const seedFeedback: Feedback[] = [
   { id: "f1", internId: "i1", fromId: "l1", rating: 5, note: "Exceptional ownership leading the growth pod. Keep raising the bar.", date: "Jun 22" },
   { id: "f2", internId: "i2", fromId: "l1", rating: 4, note: "Strong analytical work — tighten delivery timelines slightly.", date: "Jun 20" },
@@ -118,6 +110,7 @@ interface AppCtx {
   standups: Standup[];
   requests: ApprovalRequest[];
   feedback: Feedback[];
+  live: boolean;
   assignTask: (t: Omit<Task, "id" | "status" | "submissionId"> & { status?: TaskStatus }) => void;
   setTaskStatus: (id: string, status: TaskStatus) => void;
   submitTask: (taskId: string, internId: string, note: string, files: Attachment[]) => void;
@@ -129,19 +122,16 @@ interface AppCtx {
 }
 
 const Ctx = createContext<AppCtx | null>(null);
-
 const STORAGE_KEY = "mj_nexus_data_v1";
 
-/** Drop session-only blob: URLs on reload (real https Storage URLs are kept). */
 function cleanBlobUrls<T extends { files?: Attachment[] }>(items: T[]): T[] {
   return items.map((it) =>
-    it.files
-      ? { ...it, files: it.files.map((f) => (f.url?.startsWith("blob:") ? { ...f, url: undefined } : f)) }
-      : it
+    it.files ? { ...it, files: it.files.map((f) => (f.url?.startsWith("blob:") ? { ...f, url: undefined } : f)) } : it
   );
 }
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
+  const live = isSupabaseConfigured();
   const [tasks, setTasks] = useState<Task[]>(seedTasks);
   const [submissions, setSubmissions] = useState<Submission[]>(seedSubmissions);
   const [standups, setStandups] = useState<Standup[]>(seedStandups);
@@ -149,96 +139,132 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [feedback, setFeedback] = useState<Feedback[]>(seedFeedback);
   const [hydrated, setHydrated] = useState(false);
 
-  // Load saved data once on mount (per-browser persistence — free, no backend).
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (Array.isArray(d.tasks)) setTasks(d.tasks);
-        if (Array.isArray(d.submissions)) setSubmissions(cleanBlobUrls(d.submissions));
-        if (Array.isArray(d.standups)) setStandups(d.standups);
-        if (Array.isArray(d.requests)) setRequests(cleanBlobUrls(d.requests));
-        if (Array.isArray(d.feedback)) setFeedback(d.feedback);
+    let unsub = () => {};
+    let active = true;
+    (async () => {
+      if (live) {
+        try {
+          const { loadAll, subscribeAll } = await import("@/lib/supabase/data");
+          const data = await loadAll();
+          if (active) {
+            // Only adopt DB data if it has rows (so an unseeded DB doesn't blank the UI).
+            if (data.tasks.length) setTasks(data.tasks);
+            if (data.submissions.length) setSubmissions(data.submissions);
+            if (data.standups.length) setStandups(data.standups);
+            if (data.requests.length) setRequests(data.requests);
+            if (data.feedback.length) setFeedback(data.feedback);
+          }
+          const upsert = <T extends { id: string }>(setter: (u: (prev: T[]) => T[]) => void) => (obj: any, type: string) =>
+            setter((prev) => {
+              if (type === "DELETE") return prev.filter((x) => x.id !== obj.id);
+              const i = prev.findIndex((x) => x.id === obj.id);
+              if (i >= 0) {
+                const c = [...prev];
+                c[i] = obj;
+                return c;
+              }
+              return [obj, ...prev];
+            });
+          const apply: Record<string, (o: any, t: string) => void> = {
+            tasks: upsert(setTasks),
+            submissions: upsert(setSubmissions),
+            standups: upsert(setStandups),
+            requests: upsert(setRequests),
+            feedback: upsert(setFeedback),
+          };
+          unsub = subscribeAll((entity, type, obj) => apply[entity]?.(obj, type));
+        } catch {
+          // DB unavailable — keep seed data so the app still works.
+        }
+      } else {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const d = JSON.parse(raw);
+            if (Array.isArray(d.tasks)) setTasks(d.tasks);
+            if (Array.isArray(d.submissions)) setSubmissions(cleanBlobUrls(d.submissions));
+            if (Array.isArray(d.standups)) setStandups(d.standups);
+            if (Array.isArray(d.requests)) setRequests(cleanBlobUrls(d.requests));
+            if (Array.isArray(d.feedback)) setFeedback(d.feedback);
+          }
+        } catch {}
       }
-    } catch {}
-    setHydrated(true);
+      if (active) setHydrated(true);
+    })();
+    return () => {
+      active = false;
+      unsub();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Save on every change.
+  // Demo persistence to localStorage (live mode persists to the DB instead).
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || live) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, submissions, standups, requests, feedback }));
     } catch {}
-  }, [hydrated, tasks, submissions, standups, requests, feedback]);
+  }, [hydrated, live, tasks, submissions, standups, requests, feedback]);
 
+  const write = async (fn: () => Promise<void>) => {
+    if (!live) return;
+    try {
+      await fn();
+    } catch {
+      // optimistic UI already applied; ignore transient DB errors
+    }
+  };
+  const dbInsert = async (e: any, o: any) => write(async () => (await import("@/lib/supabase/data")).dbInsert(e, o));
+  const dbUpdate = async (e: any, id: string, p: any) => write(async () => (await import("@/lib/supabase/data")).dbUpdate(e, id, p));
 
-  const assignTask: AppCtx["assignTask"] = (t) =>
-    setTasks((prev) => [{ ...t, id: `t${Date.now()}`, status: t.status ?? "To Do" }, ...prev]);
-
-  const setTaskStatus: AppCtx["setTaskStatus"] = (id, status) =>
+  const assignTask: AppCtx["assignTask"] = (t) => {
+    const task: Task = { ...t, id: `t${Date.now()}`, status: t.status ?? "To Do" };
+    setTasks((prev) => [task, ...prev]);
+    dbInsert("tasks", task);
+  };
+  const setTaskStatus: AppCtx["setTaskStatus"] = (id, status) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
-
+    dbUpdate("tasks", id, { status });
+  };
   const submitTask: AppCtx["submitTask"] = (taskId, internId, note, files) => {
     const id = `sub${Date.now()}`;
-    setSubmissions((prev) => [
-      { id, taskId, internId, note, files, submittedAt: "Just now", status: "Pending Review" },
-      ...prev,
-    ]);
+    const sub: Submission = { id, taskId, internId, note, files, submittedAt: "Just now", status: "Pending Review" };
+    setSubmissions((prev) => [sub, ...prev]);
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: "Submitted", submissionId: id } : t)));
+    dbInsert("submissions", sub);
+    dbUpdate("tasks", taskId, { status: "Submitted", submissionId: id });
   };
-
   const reviewSubmission: AppCtx["reviewSubmission"] = (submissionId, decision, note) => {
-    setSubmissions((prev) =>
-      prev.map((s) => (s.id === submissionId ? { ...s, status: decision, reviewNote: note } : s))
-    );
-    setSubmissions((cur) => {
-      const sub = cur.find((s) => s.id === submissionId);
-      if (sub) {
-        setTasks((prev) =>
-          prev.map((t) =>
-            t.id === sub.taskId
-              ? { ...t, status: decision === "Approved" ? "Approved" : "In Progress" }
-              : t
-          )
-        );
-      }
-      return cur;
-    });
+    const sub = submissions.find((s) => s.id === submissionId);
+    setSubmissions((prev) => prev.map((s) => (s.id === submissionId ? { ...s, status: decision, reviewNote: note } : s)));
+    if (sub) setTasks((prev) => prev.map((t) => (t.id === sub.taskId ? { ...t, status: decision === "Approved" ? "Approved" : "In Progress" } : t)));
+    dbUpdate("submissions", submissionId, { status: decision, reviewNote: note });
+    if (sub) dbUpdate("tasks", sub.taskId, { status: decision === "Approved" ? "Approved" : "In Progress" });
   };
-
-  const addStandup: AppCtx["addStandup"] = (s) =>
-    setStandups((prev) => [{ ...s, id: `s${Date.now()}` }, ...prev]);
-
-  const createRequest: AppCtx["createRequest"] = (r) =>
-    setRequests((prev) => [{ ...r, id: `r${Date.now()}`, status: "Pending", createdAt: "Just now" }, ...prev]);
-
-  const decideRequest: AppCtx["decideRequest"] = (id, decision, note) =>
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: decision, decisionNote: note } : r))
-    );
-
-  const addFeedback: AppCtx["addFeedback"] = (f) =>
-    setFeedback((prev) => [{ ...f, id: `f${Date.now()}`, date: "Just now" }, ...prev]);
+  const addStandup: AppCtx["addStandup"] = (s) => {
+    const row: Standup = { ...s, id: `s${Date.now()}` };
+    setStandups((prev) => [row, ...prev]);
+    dbInsert("standups", row);
+  };
+  const createRequest: AppCtx["createRequest"] = (r) => {
+    const row: ApprovalRequest = { ...r, id: `r${Date.now()}`, status: "Pending", createdAt: "Just now" };
+    setRequests((prev) => [row, ...prev]);
+    dbInsert("requests", row);
+  };
+  const decideRequest: AppCtx["decideRequest"] = (id, decision, note) => {
+    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: decision, decisionNote: note } : r)));
+    dbUpdate("requests", id, { status: decision, decisionNote: note });
+  };
+  const addFeedback: AppCtx["addFeedback"] = (f) => {
+    const row: Feedback = { ...f, id: `f${Date.now()}`, date: "Just now" };
+    setFeedback((prev) => [row, ...prev]);
+    dbInsert("feedback", row);
+  };
 
   return (
     <Ctx.Provider
-      value={{
-        tasks,
-        submissions,
-        standups,
-        requests,
-        feedback,
-        assignTask,
-        setTaskStatus,
-        submitTask,
-        reviewSubmission,
-        addStandup,
-        createRequest,
-        decideRequest,
-        addFeedback,
-      }}
+      value={{ tasks, submissions, standups, requests, feedback, live, assignTask, setTaskStatus, submitTask, reviewSubmission, addStandup, createRequest, decideRequest, addFeedback }}
     >
       {children}
     </Ctx.Provider>
