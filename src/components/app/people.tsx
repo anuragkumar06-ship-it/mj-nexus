@@ -128,7 +128,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   const authorizeEmail = useCallback(
     async (email: string) => {
       const em = (email || "").toLowerCase();
-      if (!em) return;
+      if (!em || candidateEmails.has(em)) return;
       setCandidateEmails((prev) => {
         const n = new Set(prev);
         n.add(em);
@@ -153,7 +153,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
         });
       } catch {}
     },
-    [live]
+    [live, candidateEmails]
   );
 
   return (

@@ -95,22 +95,23 @@ export function PeopleDirectory() {
     toast({ title: "Role updated", description: `Set to ${ROLE_META[role].label}.`, type: "success" });
   };
   const applyRole = (id: string, value: string) => {
+    const person = personById(id);
+    let base: Role;
     if (value.startsWith("custom:")) {
-      const name = value.slice(7);
-      const cr = customRoles.find((c) => c.name === name);
-      if (cr) {
-        updatePerson(id, { role: cr.base, title: cr.name });
-        toast({ title: "Role updated", description: `Set to ${cr.name}.`, type: "success" });
-      }
+      const cr = customRoles.find((c) => c.name === value.slice(7));
+      if (!cr) return;
+      base = cr.base;
+      updatePerson(id, { role: cr.base, title: cr.name });
+      toast({ title: "Role updated", description: `Set to ${cr.name}.`, type: "success" });
     } else {
-      const r = value as Role;
-      const person = personById(id);
-      const patch: { role: Role; title?: string } = { role: r };
-      // If they currently hold a custom role designation, clear it back to the base label.
-      if (person && customRoles.some((c) => c.name === person.title)) patch.title = ROLE_META[r].label;
+      base = value as Role;
+      const patch: { role: Role; title?: string } = { role: base };
+      if (person && customRoles.some((c) => c.name === person.title)) patch.title = ROLE_META[base].label;
       updatePerson(id, patch);
-      toast({ title: "Role updated", description: `Set to ${ROLE_META[r].label}.`, type: "success" });
+      toast({ title: "Role updated", description: `Set to ${ROLE_META[base].label}.`, type: "success" });
     }
+    // Keep a management-managed intern authorized so they don't fall into "Sign-in requests".
+    if (base === "intern" && person?.email) authorizeEmail(person.email);
   };
   const roleValueOf = (p: { role: Role; title: string }) => (customRoles.find((c) => c.name === p.title) ? `custom:${p.title}` : p.role);
   const setManager = (id: string, managerId: string) => {
@@ -334,6 +335,10 @@ export function PeopleDirectory() {
                       {managerOptions.filter((m) => m.id !== sel.id).map((m) => <option key={m.id} value={m.id}>{m.name} ({ROLE_META[m.role].short})</option>)}
                     </select>
                   </div>
+                </div>
+                <div className="mt-3">
+                  <label className={labelClass}>Title / designation</label>
+                  <input key={sel.id + "-title"} defaultValue={sel.title} onBlur={(e) => { if (e.target.value !== sel.title) { updatePerson(sel.id, { title: e.target.value }); toast({ title: "Title updated", type: "success" }); } }} placeholder="e.g. Marketing Intern" className={fieldClass} />
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div>
