@@ -32,7 +32,7 @@ export function ScheduleInterviewButton() {
     }
     const role = candidates.find((c) => c.name === name)?.role ?? "Marketing";
     addInterview({
-      id: `i${Date.now()}`,
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `i${Date.now()}`,
       candidate: name,
       role,
       date,

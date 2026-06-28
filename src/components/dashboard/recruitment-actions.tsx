@@ -44,7 +44,7 @@ export function AddCandidateButton() {
     e.preventDefault();
     if (!name.trim()) return;
     const c: Candidate = {
-      id: `c${Date.now()}`,
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `c${Date.now()}`,
       name: name.trim(),
       role,
       college: college.trim() || "—",
