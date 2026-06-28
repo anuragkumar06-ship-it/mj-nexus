@@ -1,6 +1,7 @@
 "use client";
 
-import { CalendarCheck, Check, Clock, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CalendarCheck, Check, Clock, Users, Gauge } from "lucide-react";
 import { RoleGate } from "@/components/app/role-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
@@ -32,8 +33,11 @@ function AttendanceView() {
   const { user, role } = useAuth();
   const { requests } = useApp();
   const { reportsOf, internsAll, personById } = usePeople();
-  const { records, markToday } = useAttendance();
+  const { records, markToday, minPct, setMinPct } = useAttendance();
   const { toast } = useToast();
+  const isManagement = role === "management";
+  const [pctInput, setPctInput] = useState(minPct);
+  useEffect(() => setPctInput(minPct), [minPct]);
 
   const today = todayStr();
   const days = lastDays(14);
@@ -50,6 +54,7 @@ function AttendanceView() {
   const presentCount = (userId: string) => days.filter((d) => statusFor(userId, d) === "Present").length;
   const leaveCount = (userId: string) => days.filter((d) => statusFor(userId, d) === "Leave").length;
   const rate = (userId: string) => Math.round((presentCount(userId) / days.length) * 100);
+  const meets = (userId: string) => rate(userId) >= minPct;
 
   const myToday = statusFor(user.id, today);
   const checkedIn = presentSet.has(`${user.id}_${today}`);
@@ -65,6 +70,17 @@ function AttendanceView() {
   return (
     <>
       <PageHeader eyebrow="Attendance" title="Attendance" description="Mark your attendance, track your record, and see approved leaves reflected automatically." />
+
+      {isManagement && (
+        <Card className="mb-6">
+          <CardHeader title="Attendance policy" subtitle="Set the minimum attendance interns must maintain — management only" icon={<Gauge className="h-5 w-5" />} />
+          <div className="flex flex-wrap items-center gap-3">
+            <input type="number" min={0} max={100} value={pctInput} onChange={(e) => setPctInput(Number(e.target.value))} className="h-11 w-24 rounded-xl border border-navy/10 bg-white px-3 text-sm font-semibold text-navy outline-none transition-all focus:border-mjblue/50 focus:ring-4 focus:ring-mjblue/10" />
+            <span className="text-sm text-slate-500">% minimum attendance</span>
+            <Button size="sm" onClick={() => { const v = Math.max(0, Math.min(100, Math.round(pctInput || 0))); setMinPct(v); toast({ title: "Policy updated", description: `Minimum attendance set to ${v}%.`, type: "success" }); }}>Set policy</Button>
+          </div>
+        </Card>
+      )}
 
       {/* Today + my record */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -90,6 +106,13 @@ function AttendanceView() {
             <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{rate(user.id)}%</p><p className="text-xs text-slate-500">Attendance (14d)</p></div>
             <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{leaveCount(user.id)}</p><p className="text-xs text-slate-500">Leave days (14d)</p></div>
           </div>
+          {isManagement ? (
+            <p className="mt-3 text-center text-[11px] text-slate-400">Management has no attendance requirement.</p>
+          ) : (
+            <p className={cn("mt-3 rounded-xl py-2 text-center text-xs font-semibold", meets(user.id) ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
+              Requirement {minPct}% · {meets(user.id) ? "On track ✓" : "Below minimum"}
+            </p>
+          )}
         </Card>
 
         <Card className="lg:col-span-2">
@@ -124,6 +147,7 @@ function AttendanceView() {
                   <th className="pb-3 font-semibold">Person</th>
                   <th className="pb-3 font-semibold">Today</th>
                   <th className="pb-3 font-semibold">Last 14 days</th>
+                  <th className="pb-3 font-semibold">Status</th>
                   <th className="pb-3 text-right font-semibold">Attendance</th>
                 </tr>
               </thead>
@@ -144,6 +168,7 @@ function AttendanceView() {
                           {days.map((d) => <span key={d} className={cn("h-4 w-2 rounded-sm", STATUS_TONE[statusFor(p.id, d)])} title={`${d} · ${statusFor(p.id, d)}`} />)}
                         </div>
                       </td>
+                      <td className="py-3"><Badge tone={meets(p.id) ? "green" : "red"}>{meets(p.id) ? "On track" : `Below ${minPct}%`}</Badge></td>
                       <td className="py-3 text-right font-bold text-navy tabular-nums">{rate(p.id)}%</td>
                     </tr>
                   );

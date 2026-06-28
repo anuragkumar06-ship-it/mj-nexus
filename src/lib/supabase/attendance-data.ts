@@ -37,3 +37,24 @@ export function subscribeAttendance(onChange: (type: string, obj: AttendanceReco
     .subscribe();
   return () => s.removeChannel(ch);
 }
+
+export async function loadSetting(key: string): Promise<string | null> {
+  const { data, error } = await createClient().from("org_settings").select("value").eq("key", key).maybeSingle();
+  if (error) return null;
+  return (data?.value as string) ?? null;
+}
+export async function saveSetting(key: string, value: string) {
+  const { error } = await createClient().from("org_settings").upsert({ key, value }, { onConflict: "key" });
+  if (error) throw error;
+}
+export function subscribeSettings(onChange: (key: string, value: string) => void) {
+  const s = createClient();
+  const ch = s
+    .channel("mj-org-settings")
+    .on("postgres_changes" as any, { event: "*", schema: "public", table: "org_settings" }, (p: any) => {
+      const row = p.new ?? p.old;
+      if (row?.key) onChange(row.key, row.value ?? "");
+    })
+    .subscribe();
+  return () => s.removeChannel(ch);
+}

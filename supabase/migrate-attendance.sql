@@ -25,3 +25,20 @@ do $$
 begin
   begin execute 'alter publication supabase_realtime add table public.attendance'; exception when duplicate_object then null; end;
 end $$;
+
+-- Org-wide settings (e.g. attendance_min_pct). Read by all; written by signed-in
+-- users (the UI restricts the control to management).
+create table if not exists public.org_settings (
+  key text primary key,
+  value text,
+  updated_at timestamptz not null default now()
+);
+alter table public.org_settings enable row level security;
+drop policy if exists settings_read on public.org_settings;
+create policy settings_read on public.org_settings for select to authenticated using (true);
+drop policy if exists settings_write on public.org_settings;
+create policy settings_write on public.org_settings for all to authenticated using (true) with check (true);
+do $$
+begin
+  begin execute 'alter publication supabase_realtime add table public.org_settings'; exception when duplicate_object then null; end;
+end $$;
