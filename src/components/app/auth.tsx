@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { ROLE_IDENTITY, personById, type Person, type Role } from "@/lib/org";
 import { isSupabaseConfigured } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
@@ -65,6 +66,7 @@ function DemoAuth({ children }: { children: ReactNode }) {
 function LiveAuth({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [person, setPerson] = useState<Person | null>(null);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -125,7 +127,30 @@ function LiveAuth({ children }: { children: ReactNode }) {
             }
           }
         } catch {}
+        // Access gate (safe): elevated roles + admin allowlist always allowed; interns
+        // must be on the candidate allowlist. Fail-open so no one is ever locked out.
+        let allowed = true;
+        try {
+          const email = (session.user.email ?? "").toLowerCase();
+          const adminList = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@mjconsultancy.com")
+            .toLowerCase()
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (base.role === "management" || base.role === "hr" || base.role === "lead") {
+            allowed = true;
+          } else if (email && adminList.includes(email)) {
+            allowed = true;
+          } else {
+            const { data: cands, error } = await supabase.from("candidates").select("email");
+            if (error || !cands || cands.length === 0) allowed = true; // fail-open / allowlist not curated yet
+            else allowed = cands.some((c: { email?: string }) => (c.email ?? "").toLowerCase() === email);
+          }
+        } catch {
+          allowed = true;
+        }
         if (active) {
+          setDenied(!allowed);
           setPerson(base);
           setLoading(false);
         }
@@ -169,6 +194,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
   };
 
   if (loading) return <BrandLoader />;
+  if (denied) return <AccessDenied />;
   if (!person) return <SignInRequired />;
 
   return (
@@ -188,6 +214,34 @@ function BrandLoader() {
         <div className="h-1 w-32 overflow-hidden rounded-full bg-navy/10">
           <div className="h-full w-1/2 animate-[marquee_1.1s_linear_infinite] rounded-full bg-gradient-brand" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AccessDenied() {
+  const signOut = async () => {
+    try {
+      await createClient().auth.signOut();
+    } catch {}
+    if (typeof window !== "undefined") window.location.href = "/login";
+  };
+  return (
+    <div className="grid min-h-screen place-items-center bg-offwhite px-6">
+      <div className="max-w-sm rounded-3xl border border-navy/5 bg-white p-8 text-center shadow-card">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-amber-500">
+          <Lock className="h-7 w-7" />
+        </div>
+        <h1 className="text-xl font-bold text-navy">Access not authorized</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          This email isn&apos;t on the approved list yet. Ask your MJ Nexus administrator to add you as a candidate, then sign in again.
+        </p>
+        <button
+          onClick={signOut}
+          className="mt-5 inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(29,127,255,0.6)]"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );
