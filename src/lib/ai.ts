@@ -46,26 +46,45 @@ async function openaiChat(messages: ChatMessage[], opts: ChatOpts): Promise<stri
 async function geminiChat(messages: ChatMessage[], opts: ChatOpts): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY missing");
-  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
   const systemText = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
   const contents = messages
     .filter((m) => m.role !== "system")
     .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: systemText ? { parts: [{ text: systemText }] } : undefined,
-        contents,
-        generationConfig: { temperature: opts.temperature ?? 0.5, maxOutputTokens: opts.maxTokens ?? 600 },
-      }),
+  const body = JSON.stringify({
+    system_instruction: systemText ? { parts: [{ text: systemText }] } : undefined,
+    contents,
+    generationConfig: { temperature: opts.temperature ?? 0.5, maxOutputTokens: opts.maxTokens ?? 600 },
+  });
+
+  // Try several models in order so a deprecated/unavailable name doesn't kill the call.
+  const models = [
+    process.env.GEMINI_MODEL,
+    "gemini-2.0-flash",
+    "gemini-2.5-flash",
+    "gemini-flash-latest",
+    "gemini-1.5-flash",
+  ].filter((m): m is string => Boolean(m));
+
+  let lastErr = "no models tried";
+  for (const model of [...new Set(models)]) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body }
+      );
+      if (!res.ok) {
+        lastErr = `${model}: ${res.status} ${await res.text()}`;
+        continue;
+      }
+      const data: any = await res.json();
+      const text = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? "").trim();
+      if (text) return text;
+      lastErr = `${model}: empty response`;
+    } catch (e) {
+      lastErr = `${model}: ${String(e)}`;
     }
-  );
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
-  const data: any = await res.json();
-  return (data.candidates?.[0]?.content?.parts?.[0]?.text ?? "").trim();
+  }
+  throw new Error(`Gemini failed — ${lastErr}`);
 }
 
 /** Best-effort JSON extraction from an LLM response. */

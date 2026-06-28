@@ -56,6 +56,30 @@ export async function updateProfile(id: string, patch: ProfilePatch) {
   if (error) throw error;
 }
 
+export async function createProfile(p: Person) {
+  const row = {
+    id: p.id,
+    name: p.name,
+    email: p.email || null,
+    phone: p.phone || null,
+    role: p.role,
+    title: p.title || null,
+    team: p.team || null,
+    manager_id: p.managerId || null,
+    performance: p.performance ?? null,
+    reliability: p.reliability ?? null,
+    growth: p.growth ?? null,
+    attendance: p.attendance ?? null,
+  };
+  const { error } = await createClient().from("profiles").insert(row);
+  if (error) throw error;
+}
+
+export async function removeProfile(id: string) {
+  const { error } = await createClient().from("profiles").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export function subscribeProfiles(onChange: () => void) {
   const s = createClient();
   const channel = s

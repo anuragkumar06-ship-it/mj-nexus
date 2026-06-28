@@ -14,6 +14,8 @@ interface PeopleCtx {
   leadsAll: () => Person[];
   hrAll: () => Person[];
   updatePerson: (id: string, patch: Partial<Person>) => Promise<void>;
+  addPerson: (p: Person) => Promise<void>;
+  removePerson: (id: string) => Promise<void>;
 }
 
 const Ctx = createContext<PeopleCtx | null>(null);
@@ -73,8 +75,32 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [live]
   );
 
+  const addPerson = useCallback(
+    async (p: Person) => {
+      setPeople((prev) => [p, ...prev.filter((x) => x.id !== p.id)]);
+      if (!live) return;
+      try {
+        const { createProfile } = await import("@/lib/supabase/profiles");
+        await createProfile(p);
+      } catch {}
+    },
+    [live]
+  );
+
+  const removePerson = useCallback(
+    async (id: string) => {
+      setPeople((prev) => prev.filter((x) => x.id !== id));
+      if (!live) return;
+      try {
+        const { removeProfile } = await import("@/lib/supabase/profiles");
+        await removeProfile(id);
+      } catch {}
+    },
+    [live]
+  );
+
   return (
-    <Ctx.Provider value={{ people, loading, live, personById, reportsOf, internsAll, leadsAll, hrAll, updatePerson }}>
+    <Ctx.Provider value={{ people, loading, live, personById, reportsOf, internsAll, leadsAll, hrAll, updatePerson, addPerson, removePerson }}>
       {children}
     </Ctx.Provider>
   );

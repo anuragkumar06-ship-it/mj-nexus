@@ -14,14 +14,18 @@ import {
   Star,
   ShieldCheck,
   UserCog,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/shared/reveal";
 import { ScoreBar } from "@/components/shared/charts";
-import { fieldClass, labelClass } from "@/components/ui/modal";
+import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
 import { useApp } from "@/components/app/store";
 import { usePeople } from "@/components/app/people";
+import { useAuth } from "@/components/app/auth";
 import { useToast } from "@/components/ui/toast";
 import { initials, ROLE_META, type Role } from "@/lib/org";
 import { cn } from "@/lib/utils";
@@ -37,11 +41,14 @@ const ROLE_OPTIONS: Role[] = ["intern", "lead", "hr", "management"];
 
 export function PeopleDirectory() {
   const { tasks, feedback, requests } = useApp();
-  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, updatePerson } = usePeople();
+  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, updatePerson, addPerson, removePerson } = usePeople();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<Role | "all">("all");
   const [query, setQuery] = useState("");
   const [selId, setSelId] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const [nf, setNf] = useState<{ name: string; email: string; role: Role; team: string }>({ name: "", email: "", role: "intern", team: "" });
 
   const directory = people.filter(
     (p) => (tab === "all" ? p.role !== "management" : p.role === tab) && p.name.toLowerCase().includes(query.toLowerCase())
