@@ -1,15 +1,15 @@
 "use client";
 
-import { Gauge, ShieldCheck, TrendingUp, Star, BarChart3, Trophy } from "lucide-react";
+import { Star, Trophy } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Card, CardHeader, Badge } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { ProgressRing } from "@/components/shared/progress-ring";
 import { ScoreBar } from "@/components/shared/charts";
-import { BarGroup } from "@/components/dashboard/charts";
+import { PerformanceCompare } from "@/components/dashboard/performance-compare";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { initials, type Person } from "@/lib/org";
+import { type Person } from "@/lib/org";
 import { usePeople } from "@/components/app/people";
 
 const avg = (arr: Person[], key: "performance" | "reliability" | "growth") =>
@@ -80,8 +80,6 @@ export default function PerformancePage() {
 
   // lead / hr / management
   const scope = role === "management" ? internsAll() : reportsOf(user.id);
-  const ranked = [...scope].sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0));
-  const compare = ranked.slice(0, 6).map((p) => ({ name: p.name.split(" ")[0], performance: p.performance ?? 0, reliability: p.reliability ?? 0, growth: p.growth ?? 0 }));
   const indices = [
     { label: "Performance", value: avg(scope, "performance"), from: "#1D7FFF", to: "#6BC5FF" },
     { label: "Reliability", value: avg(scope, "reliability"), from: "#0A6BEF", to: "#6BC5FF" },
@@ -106,29 +104,10 @@ export default function PerformancePage() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-5">
-        <Reveal className="lg:col-span-3" delay={0.05}>
-          <Card className="h-full">
-            <CardHeader title="Leaderboard" subtitle={role === "management" ? "All interns" : `${user.team} team`} icon={<Trophy className="h-5 w-5" />} />
-            <div className="space-y-2.5">
-              {ranked.map((p, i) => (
-                <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3">
-                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold ${i === 0 ? "bg-amber-100 text-amber-700" : "bg-white text-navy/50 ring-1 ring-inset ring-navy/10"}`}>{i + 1}</span>
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(p.name)}</div>
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-navy">{p.name}</p><p className="truncate text-xs text-slate-500">{p.title}</p></div>
-                  <span className="text-lg font-bold text-navy tabular-nums">{p.performance}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </Reveal>
-        <Reveal className="lg:col-span-2" delay={0.1}>
-          <Card className="h-full">
-            <CardHeader title="Index comparison" subtitle="Perf · Reliability · Growth" icon={<BarChart3 className="h-5 w-5" />} />
-            <BarGroup data={compare} xKey="name" series={[{ key: "performance", color: "#1D7FFF", name: "Performance" }, { key: "reliability", color: "#6BC5FF", name: "Reliability" }, { key: "growth", color: "#0A6BEF", name: "Growth" }]} height={300} />
-          </Card>
-        </Reveal>
-      </div>
+      <PerformanceCompare
+        people={scope}
+        scopeLabel={role === "management" ? "All interns" : `${user.team ?? "Your"} team`}
+      />
     </>
   );
 }

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, MapPin, Sparkles } from "lucide-react";
+import { GraduationCap, MapPin, Sparkles, Mail, Briefcase, CalendarDays, FileText, Download, Award } from "lucide-react";
 import {
   STAGE_META,
   ROLE_COLORS,
   initials,
   type Role,
+  type Candidate,
 } from "@/lib/data";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
 import { useRecruitment } from "@/components/dashboard/recruitment-context";
 import { cn } from "@/lib/utils";
 
@@ -21,9 +24,46 @@ function scoreTone(score: number) {
   return "bg-slate-100 text-slate-500";
 }
 
+function buildCV(c: Candidate): string {
+  return [
+    c.name.toUpperCase(),
+    `${c.role} Intern Candidate`,
+    `Email: ${c.email}`,
+    `Location: ${c.state}`,
+    "",
+    "EDUCATION",
+    `  ${c.college}`,
+    "",
+    "EXPERIENCE",
+    `  ${c.experience}`,
+    "",
+    "SKILLS",
+    `  ${c.skills.join(", ")}`,
+    "",
+    "APPLICATION",
+    `  Source: ${c.source}`,
+    `  Applied: ${c.appliedDate}`,
+    `  AI Fit Score: ${c.fitScore}/100`,
+  ].join("\n");
+}
+
+function downloadCV(c: Candidate) {
+  if (typeof window === "undefined") return;
+  const blob = new Blob([buildCV(c)], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${c.name.replace(/\s+/g, "_")}_CV.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 export function RecruitmentBoard() {
   const { candidates: allCandidates } = useRecruitment();
   const [role, setRole] = useState<(typeof roleFilters)[number]>("All");
+  const [detail, setDetail] = useState<Candidate | null>(null);
   const filtered =
     role === "All" ? allCandidates : allCandidates.filter((c) => c.role === role);
 
@@ -82,6 +122,7 @@ export function RecruitmentBoard() {
                       exit={{ opacity: 0, scale: 0.92 }}
                       transition={{ duration: 0.3 }}
                       whileHover={{ y: -3 }}
+                      onClick={() => setDetail(c)}
                       className="group cursor-pointer rounded-2xl border border-navy/5 bg-white p-3.5 shadow-card transition-shadow hover:shadow-soft"
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -145,6 +186,95 @@ export function RecruitmentBoard() {
           );
         })}
       </div>
+
+      <CandidateModal candidate={detail} onClose={() => setDetail(null)} />
     </div>
+  );
+}
+
+function Detail({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-xl border border-navy/5 bg-white p-3">
+      <span className="mt-0.5 text-mjblue">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="truncate font-medium text-navy">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function CVSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="mt-3">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-mjblue">{title}</p>
+      <p className="mt-0.5 text-sm text-navy/70">{children}</p>
+    </div>
+  );
+}
+
+function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null; onClose: () => void }) {
+  return (
+    <Modal
+      open={!!c}
+      onClose={onClose}
+      title={c?.name ?? "Candidate"}
+      description={c ? `${c.role} candidate · ${c.stage}` : ""}
+      icon={<FileText className="h-5 w-5" />}
+      footer={
+        c ? (
+          <>
+            <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+            <Button size="sm" onClick={() => downloadCV(c)}><Download className="h-4 w-4" /> Download CV</Button>
+          </>
+        ) : null
+      }
+    >
+      {c && (
+        <div className="space-y-5">
+          <div className="flex items-center gap-4 rounded-2xl border border-navy/5 bg-offwhite/60 p-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-brand text-base font-bold text-white">{initials(c.name)}</div>
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-bold text-navy">{c.name}</p>
+              <p className="text-sm font-medium" style={{ color: ROLE_COLORS[c.role] }}>{c.role}</p>
+            </div>
+            <div className="text-center">
+              <p className={cn("rounded-xl px-3 py-1.5 text-lg font-bold", scoreTone(c.fitScore))}>{c.fitScore}</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">AI fit</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <Detail icon={<Mail className="h-4 w-4" />} label="Email" value={c.email} />
+            <Detail icon={<MapPin className="h-4 w-4" />} label="Location" value={c.state} />
+            <Detail icon={<GraduationCap className="h-4 w-4" />} label="College" value={c.college} />
+            <Detail icon={<Briefcase className="h-4 w-4" />} label="Experience" value={c.experience} />
+            <Detail icon={<Award className="h-4 w-4" />} label="Source" value={c.source} />
+            <Detail icon={<CalendarDays className="h-4 w-4" />} label="Applied" value={c.appliedDate} />
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Skills</p>
+            <div className="flex flex-wrap gap-1.5">
+              {c.skills.map((s) => <span key={s} className="rounded-lg bg-mjblue-50 px-2.5 py-1 text-xs font-medium text-mjblue-700">{s}</span>)}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400"><FileText className="h-3.5 w-3.5" /> Resume / CV</p>
+            <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-card">
+              <div className="border-b border-navy/10 pb-3">
+                <p className="text-base font-bold text-navy">{c.name}</p>
+                <p className="text-xs text-slate-500">{c.role} Intern Candidate · {c.email}</p>
+              </div>
+              <CVSection title="Education">{c.college}</CVSection>
+              <CVSection title="Experience">{c.experience}</CVSection>
+              <CVSection title="Skills">{c.skills.join(" · ")}</CVSection>
+              <CVSection title="Application">{c.source} · Applied {c.appliedDate} · AI Fit {c.fitScore}/100</CVSection>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }

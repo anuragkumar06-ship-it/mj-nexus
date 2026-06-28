@@ -33,6 +33,7 @@ export function ApprovalsView() {
   const { toast } = useToast();
 
   const inbox = requests.filter((r) => r.approverId === user.id && r.status === "Pending");
+  const history = requests.filter((r) => r.approverId === user.id && r.status !== "Pending");
   const mine = requests.filter((r) => r.requesterId === user.id);
 
   const [open, setOpen] = useState(false);
@@ -105,7 +106,34 @@ export function ApprovalsView() {
         </Card>
       )}
 
+      {/* Decision history — requests you decided */}
+      {(role === "lead" || role === "hr" || role === "management") && (
+        <Card>
+          <CardHeader title="Decision history" subtitle="Requests you've approved or declined" icon={<ClipboardList className="h-5 w-5" />} action={<Badge tone="navy">{history.length}</Badge>} />
+          {history.length === 0 ? (
+            <p className="py-8 text-center text-sm text-slate-400">No decisions yet — approved & declined requests will appear here.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {history.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(r.requesterId)?.name ?? "")}</div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2"><Badge tone="blue">{r.type}</Badge><span className="text-[11px] text-slate-400">{r.createdAt}</span></div>
+                      <p className="mt-1 truncate text-sm font-semibold text-navy">{r.title}</p>
+                      <p className="truncate text-xs text-slate-500">from {personById(r.requesterId)?.name}{r.decisionNote ? ` · ${r.decisionNote}` : ""}</p>
+                    </div>
+                  </div>
+                  <Badge tone={statusTone[r.status]}>{r.status}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* My requests */}
+      {canInitiate && (
       <Card>
         <CardHeader title="My requests" subtitle="Requests you've raised & their status" icon={<Send className="h-5 w-5" />} />
         {mine.length === 0 ? (
@@ -125,6 +153,7 @@ export function ApprovalsView() {
           </div>
         )}
       </Card>
+      )}
 
       {/* Management oversight */}
       {role === "management" && (

@@ -56,7 +56,7 @@ export function InternWork() {
     }
     submitTask(submitFor.id, user.id, note.trim() || "Work submitted.", files);
     burstConfetti();
-    toast({ title: "Work submitted", description: `"${submitFor.title}" sent to your lead for review.`, type: "success" });
+    toast({ title: "Work submitted", description: `"${submitFor.title}" submitted for review.`, type: "success" });
     setSubmitFor(null);
   };
 

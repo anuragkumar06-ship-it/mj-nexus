@@ -39,6 +39,7 @@ export const roleNav: Record<Role, NavItem[]> = {
   ],
   hr: [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+    { label: "My Tasks", href: "/dashboard/workspace", icon: ListChecks },
     { label: "Recruitment", href: "/dashboard/recruitment", icon: Users },
     { label: "AI Engine", href: "/dashboard/ai-engine", icon: ScanSearch },
     { label: "Interviews", href: "/dashboard/interviews", icon: Video },
@@ -49,6 +50,7 @@ export const roleNav: Record<Role, NavItem[]> = {
   management: [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
     { label: "People", href: "/dashboard/people", icon: UsersRound },
+    { label: "Task Reviews", href: "/dashboard/workspace", icon: ListChecks },
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
@@ -58,7 +60,7 @@ export const roleNav: Record<Role, NavItem[]> = {
 
 /** Which roles may access a given route (for RoleGate). */
 export const routeAccess: Record<string, Role[]> = {
-  "/dashboard/workspace": ["intern", "lead"],
+  "/dashboard/workspace": ["intern", "lead", "hr", "management"],
   "/dashboard/team": ["lead", "management"],
   "/dashboard/people": ["management"],
   "/dashboard/recruitment": ["hr", "management"],
