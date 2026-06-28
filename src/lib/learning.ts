@@ -8,6 +8,7 @@ export interface LearningResource {
   type: LearningType;
   url: string;
   category: string;
+  folder?: string;
   level: LearningLevel;
   createdAt?: string;
 }
@@ -21,6 +22,7 @@ export const LEARNING_SEED: LearningResource[] = [
     type: "Course",
     url: "https://www.youtube.com/results?search_query=digital+marketing+fundamentals",
     category: "Marketing",
+    folder: "Marketing Foundations",
     level: "Beginner",
   },
   {
@@ -66,6 +68,7 @@ export const LEARNING_SEED: LearningResource[] = [
     type: "Doc",
     url: "https://www.youtube.com/results?search_query=content+strategy",
     category: "Marketing",
+    folder: "Marketing Foundations",
     level: "Advanced",
   },
 ];

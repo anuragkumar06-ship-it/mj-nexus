@@ -46,21 +46,26 @@ function LearningHub() {
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
+  const [folderFilter, setFolderFilter] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
   const [player, setPlayer] = useState<LearningItem | null>(null);
-  const [f, setF] = useState<{ title: string; description: string; type: LearningType; url: string; category: string; level: LearningLevel }>({
+  const [f, setF] = useState<{ title: string; description: string; type: LearningType; url: string; category: string; folder: string; level: LearningLevel }>({
     title: "",
     description: "",
     type: "Video",
     url: "",
     category: "",
+    folder: "",
     level: "Beginner",
   });
+
+  const folders = Array.from(new Set(items.map((i) => i.folder).filter(Boolean))) as string[];
 
   const filtered = items.filter(
     (it) =>
       (cat === "All" || it.category === cat) &&
-      (!q.trim() || `${it.title} ${it.description} ${it.category}`.toLowerCase().includes(q.toLowerCase()))
+      (folderFilter === "All" || it.folder === folderFilter) &&
+      (!q.trim() || `${it.title} ${it.description} ${it.category} ${it.folder ?? ""}`.toLowerCase().includes(q.toLowerCase()))
   );
 
   const completed = items.filter((i) => i.progress >= 100).length;
@@ -80,10 +85,11 @@ function LearningHub() {
       type: f.type,
       url: f.url.trim(),
       category: f.category.trim() || "General",
+      folder: f.folder.trim() || undefined,
       level: f.level,
     });
     toast({ title: "Resource added", description: `${f.title.trim()} is now in the Learning Hub.`, type: "success" });
-    setF({ title: "", description: "", type: "Video", url: "", category: "", level: "Beginner" });
+    setF({ title: "", description: "", type: "Video", url: "", category: "", folder: "", level: "Beginner" });
     setAddOpen(false);
   };
 
@@ -150,7 +156,13 @@ function LearningHub() {
             className="h-10 w-full rounded-xl border border-navy/8 bg-white pl-10 pr-4 text-sm text-navy outline-none transition-all placeholder:text-slate-400 focus:border-mjblue/40 focus:ring-4 focus:ring-mjblue/10"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {folders.length > 0 && (
+            <select value={folderFilter} onChange={(e) => setFolderFilter(e.target.value)} className="h-9 rounded-full border border-navy/8 bg-white px-3 text-sm font-semibold text-navy/70 outline-none transition-colors focus:border-mjblue/40">
+              <option value="All">All folders</option>
+              {folders.map((fl) => <option key={fl} value={fl}>{fl}</option>)}
+            </select>
+          )}
           {["All", ...categories].map((c) => (
             <button
               key={c}
@@ -198,9 +210,10 @@ function LearningHub() {
                       )}
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span className="rounded-md bg-mjblue-50 px-1.5 py-0.5 text-[10px] font-semibold text-mjblue-700">{it.type}</span>
                     <span className="text-[11px] font-medium text-slate-400">{it.category}</span>
+                    {it.folder && <span className="rounded-md bg-navy/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-navy/60">📁 {it.folder}</span>}
                   </div>
                   <h3 className="mt-2 text-lg font-semibold leading-snug tracking-tight text-navy">{it.title}</h3>
                   {it.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{it.description}</p>}
@@ -256,6 +269,11 @@ function LearningHub() {
             <div><label className={labelClass}>Level</label><select value={f.level} onChange={(e) => setF({ ...f, level: e.target.value as LearningLevel })} className={fieldClass}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
           </div>
           <div><label className={labelClass}>Category</label><input value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} placeholder="e.g. Marketing, Sales, Branding" className={fieldClass} /></div>
+          <div>
+            <label className={labelClass}>Folder <span className="font-normal text-slate-400">(optional — group related materials)</span></label>
+            <input value={f.folder} onChange={(e) => setF({ ...f, folder: e.target.value })} placeholder="e.g. Marketing Foundations" list="mj-learning-folders" className={fieldClass} />
+            <datalist id="mj-learning-folders">{folders.map((fl) => <option key={fl} value={fl} />)}</datalist>
+          </div>
           <div><label className={labelClass}>Description <span className="font-normal text-slate-400">(optional)</span></label><textarea rows={2} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="What will they learn?" className={textareaClass} /></div>
         </div>
       </Modal>

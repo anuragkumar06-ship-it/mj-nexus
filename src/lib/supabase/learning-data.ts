@@ -11,12 +11,13 @@ function fromRow(r: any): LearningResource {
     type: r.type ?? "Video",
     url: r.url ?? "",
     category: r.category ?? "General",
+    folder: r.folder ?? undefined,
     level: r.level ?? "Beginner",
     createdAt: (r.created_at ?? "").slice(0, 10),
   };
 }
 function toRow(r: LearningResource): any {
-  return { id: r.id, title: r.title, description: r.description, type: r.type, url: r.url, category: r.category, level: r.level };
+  return { id: r.id, title: r.title, description: r.description, type: r.type, url: r.url, category: r.category, folder: r.folder ?? null, level: r.level };
 }
 
 export async function loadResources(): Promise<LearningResource[]> {

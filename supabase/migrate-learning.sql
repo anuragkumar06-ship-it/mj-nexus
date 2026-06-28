@@ -12,10 +12,14 @@ create table if not exists public.learning_resources (
   type text default 'Video',
   url text,
   category text default 'General',
+  folder text,
   level text default 'Beginner',
   created_by uuid,
   created_at timestamptz not null default now()
 );
+
+-- Folder column (safe to re-run on an existing table)
+alter table public.learning_resources add column if not exists folder text;
 
 create table if not exists public.learning_progress (
   id text primary key,            -- `${user_id}_${resource_id}`
