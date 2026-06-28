@@ -9,7 +9,6 @@ import {
   Plus,
   Search,
   Trash2,
-  ExternalLink,
   CheckCircle2,
   FileText,
   Loader2,
@@ -24,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { LearningProvider, useLearning, type LearningItem } from "@/components/dashboard/learning-context";
+import { VideoPlayer } from "@/components/dashboard/video-player";
 import { type LearningType, type LearningLevel } from "@/lib/learning";
 import { burstConfetti } from "@/lib/confetti";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,7 @@ function LearningHub() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
+  const [player, setPlayer] = useState<LearningItem | null>(null);
   const [f, setF] = useState<{ title: string; description: string; type: LearningType; url: string; category: string; level: LearningLevel }>({
     title: "",
     description: "",
@@ -86,9 +87,12 @@ function LearningHub() {
     setAddOpen(false);
   };
 
-  const open = (it: LearningItem) => {
-    if (it.url) window.open(it.url, "_blank", "noopener,noreferrer");
-    if (it.progress < 100) setProgress(it.id, Math.max(it.progress, 50));
+  const watch = (it: LearningItem) => {
+    if (!it.url) {
+      toast({ title: "No link attached", description: "This material has no video or link to play.", type: "error" });
+      return;
+    }
+    setPlayer(it);
   };
   const complete = (it: LearningItem) => {
     const done = it.progress >= 100;
@@ -208,10 +212,10 @@ function LearningHub() {
 
                   <div className="mt-4 flex gap-2">
                     <button
-                      onClick={() => open(it)}
+                      onClick={() => watch(it)}
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-navy/5 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-navy/10"
                     >
-                      <ExternalLink className="h-4 w-4" /> {it.progress > 0 ? "Resume" : "Open"}
+                      <PlayCircle className="h-4 w-4" /> {it.progress > 0 ? "Resume" : "Watch"}
                     </button>
                     <button
                       onClick={() => complete(it)}
@@ -255,6 +259,25 @@ function LearningHub() {
           <div><label className={labelClass}>Description <span className="font-normal text-slate-400">(optional)</span></label><textarea rows={2} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="What will they learn?" className={textareaClass} /></div>
         </div>
       </Modal>
+
+      <VideoPlayer
+        open={!!player}
+        url={player?.url ?? ""}
+        title={player?.title ?? ""}
+        initialProgress={player?.progress ?? 0}
+        onProgress={(p) => {
+          if (player) setProgress(player.id, Math.max(player.progress, p));
+        }}
+        onComplete={() => {
+          if (player) {
+            setProgress(player.id, 100);
+            burstConfetti();
+            toast({ title: "Marked complete 🎉", description: player.title, type: "success" });
+          }
+          setPlayer(null);
+        }}
+        onClose={() => setPlayer(null)}
+      />
     </>
   );
 }
