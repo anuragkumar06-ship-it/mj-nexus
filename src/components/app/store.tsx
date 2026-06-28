@@ -220,6 +220,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   };
   const dbInsert = async (e: any, o: any) => write(async () => (await import("@/lib/supabase/data")).dbInsert(e, o));
   const dbUpdate = async (e: any, id: string, p: any) => write(async () => (await import("@/lib/supabase/data")).dbUpdate(e, id, p));
+  const pushNotif = (userId: string | undefined, text: string, type: string, href: string) => {
+    if (live && userId) import("@/lib/supabase/notifications-data").then((m) => m.notify(userId, text, { type, href })).catch(() => {});
+  };
 
   const assignTask: AppCtx["assignTask"] = (t) => {
     const task: Task = { ...t, id: `t${Date.now()}`, status: t.status ?? "To Do" };
@@ -237,6 +240,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: "Submitted", submissionId: id } : t)));
     dbInsert("submissions", sub);
     dbUpdate("tasks", taskId, { status: "Submitted", submissionId: id });
+    const task = tasks.find((t) => t.id === taskId);
+    pushNotif(task?.assignerId, `New submission to review: "${task?.title ?? "a task"}"`, "submission", "/dashboard/workspace");
   };
   const reviewSubmission: AppCtx["reviewSubmission"] = (submissionId, decision, note) => {
     const sub = submissions.find((s) => s.id === submissionId);
@@ -244,6 +249,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     if (sub) setTasks((prev) => prev.map((t) => (t.id === sub.taskId ? { ...t, status: decision === "Approved" ? "Approved" : "In Progress" } : t)));
     dbUpdate("submissions", submissionId, { status: decision, reviewNote: note });
     if (sub) dbUpdate("tasks", sub.taskId, { status: decision === "Approved" ? "Approved" : "In Progress" });
+    if (sub) {
+      const t = tasks.find((x) => x.id === sub.taskId);
+      pushNotif(sub.internId, `Your work on "${t?.title ?? "a task"}" was ${decision === "Approved" ? "approved" : "sent back for changes"}`, decision === "Approved" ? "success" : "info", "/dashboard/workspace");
+    }
   };
   const addStandup: AppCtx["addStandup"] = (s) => {
     const row: Standup = { ...s, id: `s${Date.now()}` };
@@ -254,10 +263,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const row: ApprovalRequest = { ...r, id: `r${Date.now()}`, status: "Pending", createdAt: "Just now" };
     setRequests((prev) => [row, ...prev]);
     dbInsert("requests", row);
+    pushNotif(row.approverId, `New ${row.type} request: ${row.title}`, "request", "/dashboard/approvals");
   };
   const decideRequest: AppCtx["decideRequest"] = (id, decision, note) => {
+    const req = requests.find((x) => x.id === id);
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: decision, decisionNote: note } : r)));
     dbUpdate("requests", id, { status: decision, decisionNote: note });
+    pushNotif(req?.requesterId, `Your request "${req?.title ?? ""}" was ${decision.toLowerCase()}`, decision === "Approved" ? "success" : "info", "/dashboard/approvals");
   };
   const addFeedback: AppCtx["addFeedback"] = (f) => {
     const row: Feedback = { ...f, id: `f${Date.now()}`, date: "Just now" };

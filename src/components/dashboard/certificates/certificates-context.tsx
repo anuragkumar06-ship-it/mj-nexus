@@ -45,13 +45,22 @@ export function CertificatesProvider({ children }: { children: ReactNode }) {
     return () => unsub();
   }, [live]);
 
+  const notifyIssued = (recipientId: string, type: string) => {
+    if (live && recipientId) import("@/lib/supabase/notifications-data").then((m) => m.notify(recipientId, `You received a ${type} certificate 🎓`, { type: "certificate", href: "/dashboard/certificates" })).catch(() => {});
+  };
+
   const addCertificate = (c: Certificate) => {
     setCertificates((prev) => [c, ...prev]);
     if (live) import("@/lib/supabase/certificates-data").then((m) => m.insertCertificate(c)).catch(() => {});
+    if (c.status === "Issued") notifyIssued(c.recipientId, c.type);
   };
   const setStatus = (id: string, status: CertStatus, issuedBy?: string, issuedByName?: string) => {
     setCertificates((prev) => prev.map((c) => (c.id === id ? { ...c, status, issuedBy: issuedBy ?? c.issuedBy, issuedByName: issuedByName ?? c.issuedByName } : c)));
     if (live) import("@/lib/supabase/certificates-data").then((m) => m.updateCertificateStatus(id, status, issuedBy, issuedByName)).catch(() => {});
+    if (status === "Issued") {
+      const cert = certificates.find((c) => c.id === id);
+      if (cert) notifyIssued(cert.recipientId, cert.type);
+    }
   };
   const removeCertificate = (id: string) => {
     setCertificates((prev) => prev.filter((c) => c.id !== id));

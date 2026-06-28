@@ -23,6 +23,7 @@ import { Logo } from "@/components/shared/logo";
 import { Avatar } from "@/components/shared/avatar";
 import { roleNav } from "@/components/app/roles";
 import { useAuth } from "@/components/app/auth";
+import { useNotifications } from "@/components/app/notifications";
 import { AiAssistant } from "@/components/dashboard/ai-assistant";
 import { ROLE_META, initials, type Role } from "@/lib/org";
 import { usePeople } from "@/components/app/people";
@@ -36,12 +37,27 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-const notifications = [
-  { id: 1, icon: Sparkles, text: "Aarav Sharma scored 92 fit", time: "2m ago", tone: "bg-mjblue-50 text-mjblue" },
-  { id: 2, icon: UserCheck, text: "Diya Patel moved to Selected", time: "18m ago", tone: "bg-emerald-50 text-emerald-600" },
-  { id: 3, icon: CalendarCheck, text: "Interview with Ishita Reddy", time: "41m ago", tone: "bg-sky-100 text-mjblue-700" },
-  { id: 4, icon: Award, text: "Certificate issued to Ananya Iyer", time: "1h ago", tone: "bg-amber-50 text-amber-600" },
-];
+const NOTIF_STYLE: Record<string, { icon: typeof Sparkles; tone: string }> = {
+  request: { icon: Bell, tone: "bg-violet-50 text-violet-600" },
+  submission: { icon: UserCheck, tone: "bg-sky-100 text-mjblue-700" },
+  success: { icon: CheckCheck, tone: "bg-emerald-50 text-emerald-600" },
+  certificate: { icon: Award, tone: "bg-amber-50 text-amber-600" },
+  info: { icon: Sparkles, tone: "bg-mjblue-50 text-mjblue" },
+};
+function notifStyle(type: string) {
+  return NOTIF_STYLE[type] ?? NOTIF_STYLE.info;
+}
+function timeAgo(iso?: string) {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  if (isNaN(diff)) return "";
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -136,8 +152,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
   const { people } = usePeople();
   const [panel, setPanel] = useState<Panel>(null);
   const [query, setQuery] = useState("");
-  const [unread, setUnread] = useState(true);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const { notifications: notes, unread, markAllRead, clearAll } = useNotifications();
   const ref = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -159,34 +174,6 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
       document.removeEventListener("keydown", onKey);
     };
   }, []);
-
-  // Persisted (per-user) notification state so clearing/reading sticks across logins.
-  useEffect(() => {
-    try {
-      const d = localStorage.getItem(`mj_notif_dismissed_${user.id}`);
-      if (d) setDismissed(new Set(JSON.parse(d)));
-      if (localStorage.getItem(`mj_notif_read_${user.id}`) === "1") setUnread(false);
-    } catch {}
-  }, [user.id]);
-
-  const notes = notifications.filter((n) => !dismissed.has(String(n.id)));
-  const clearNotes = () => {
-    const all = new Set(notifications.map((n) => String(n.id)));
-    setDismissed(all);
-    setUnread(false);
-    try {
-      localStorage.setItem(`mj_notif_dismissed_${user.id}`, JSON.stringify([...all]));
-      localStorage.setItem(`mj_notif_read_${user.id}`, "1");
-    } catch {}
-    toast({ title: "Notifications cleared", type: "success" });
-  };
-  const markNotesRead = () => {
-    setUnread(false);
-    try {
-      localStorage.setItem(`mj_notif_read_${user.id}`, "1");
-    } catch {}
-    toast({ title: "All caught up", description: "Marked all as read.", type: "success" });
-  };
 
   const personTarget = role === "management" ? "/dashboard/people" : role === "lead" ? "/dashboard/team" : "/dashboard/performance";
   const results = query.trim()
@@ -256,7 +243,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           <div className="relative">
             <button onClick={() => setPanel(panel === "bell" ? null : "bell")} className="relative grid h-10 w-10 place-items-center rounded-xl text-navy/70 transition-colors hover:bg-navy/5" aria-label="Notifications">
               <Bell className="h-5 w-5" />
-              {unread && notes.length > 0 && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-mjblue ring-2 ring-offwhite" />}
+              {unread > 0 && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-mjblue ring-2 ring-offwhite" />}
             </button>
             <AnimatePresence>
               {panel === "bell" && (
@@ -265,11 +252,11 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                     <p className="text-sm font-semibold text-navy">Notifications</p>
                     <div className="flex items-center gap-3">
                       {notes.length > 0 && (
-                        <button onClick={clearNotes} className="text-xs font-semibold text-slate-400 transition-colors hover:text-rose-600">
+                        <button onClick={() => { clearAll(); toast({ title: "Notifications cleared", type: "success" }); }} className="text-xs font-semibold text-slate-400 transition-colors hover:text-rose-600">
                           Clear all
                         </button>
                       )}
-                      <button onClick={markNotesRead} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
+                      <button onClick={() => { markAllRead(); toast({ title: "All caught up", description: "Marked all as read.", type: "success" }); }} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
                         <CheckCheck className="h-3.5 w-3.5" /> Mark all read
                       </button>
                     </div>
@@ -279,12 +266,21 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                       <p className="px-4 py-10 text-center text-sm text-slate-400">You&apos;re all caught up ✨</p>
                     ) : (
                       notes.map((n) => {
-                        const Icon = n.icon;
-                        return (
-                          <div key={n.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-offwhite/60">
-                            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${n.tone}`}><Icon className="h-4 w-4" /></span>
-                            <div className="min-w-0"><p className="text-sm leading-snug text-navy">{n.text}</p><p className="mt-0.5 text-xs text-slate-400">{n.time}</p></div>
-                          </div>
+                        const st = notifStyle(n.type);
+                        const Icon = st.icon;
+                        const body = (
+                          <>
+                            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${st.tone}`}><Icon className="h-4 w-4" /></span>
+                            <div className="min-w-0">
+                              <p className={cn("text-sm leading-snug", n.read ? "text-navy/60" : "font-medium text-navy")}>{n.text}</p>
+                              <p className="mt-0.5 text-xs text-slate-400">{timeAgo(n.createdAt)}</p>
+                            </div>
+                          </>
+                        );
+                        return n.href ? (
+                          <Link key={n.id} href={n.href} onClick={() => setPanel(null)} className="flex gap-3 px-4 py-3 transition-colors hover:bg-offwhite/60">{body}</Link>
+                        ) : (
+                          <div key={n.id} className="flex gap-3 px-4 py-3">{body}</div>
                         );
                       })
                     )}
