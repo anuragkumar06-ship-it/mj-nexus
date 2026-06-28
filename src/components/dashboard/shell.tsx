@@ -131,7 +131,7 @@ type Panel = "search" | "bell" | "user" | null;
 function Topbar({ onMenu }: { onMenu: () => void }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, role, setRole, logout } = useAuth();
+  const { user, role, setRole, logout, live } = useAuth();
   const [panel, setPanel] = useState<Panel>(null);
   const [query, setQuery] = useState("");
   const [unread, setUnread] = useState(true);
@@ -270,16 +270,20 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                     <p className="text-xs text-slate-500">{user.email}</p>
                   </div>
                   <div className="p-1.5">
-                    <p className="flex items-center gap-1.5 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      <Repeat className="h-3 w-3" /> Switch dashboard
-                    </p>
-                    {ROLES.map((r) => (
-                      <button key={r} onClick={() => switchRole(r)} className={cn("flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-colors", r === role ? "bg-mjblue-50 text-mjblue-700" : "text-navy/70 hover:bg-navy/5")}>
-                        {ROLE_META[r].label}
-                        {r === role && <span className="h-1.5 w-1.5 rounded-full bg-mjblue" />}
-                      </button>
-                    ))}
-                    <div className="my-1.5 h-px bg-navy/5" />
+                    {!live && (
+                      <>
+                        <p className="flex items-center gap-1.5 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          <Repeat className="h-3 w-3" /> Switch dashboard
+                        </p>
+                        {ROLES.map((r) => (
+                          <button key={r} onClick={() => switchRole(r)} className={cn("flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-colors", r === role ? "bg-mjblue-50 text-mjblue-700" : "text-navy/70 hover:bg-navy/5")}>
+                            {ROLE_META[r].label}
+                            {r === role && <span className="h-1.5 w-1.5 rounded-full bg-mjblue" />}
+                          </button>
+                        ))}
+                        <div className="my-1.5 h-px bg-navy/5" />
+                      </>
+                    )}
                     <button onClick={() => { logout(); router.push("/login"); }} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50">
                       <LogOut className="h-4 w-4" /> Sign out
                     </button>

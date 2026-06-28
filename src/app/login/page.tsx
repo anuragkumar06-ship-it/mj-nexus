@@ -56,7 +56,9 @@ export default function LoginPage() {
   const person = personById(ROLE_IDENTITY[role])!;
   const meta = ROLE_META[role];
 
-  useEffect(() => setEmail(person.email), [person.email]);
+  useEffect(() => {
+    if (!live) setEmail(person.email);
+  }, [person.email, live]);
 
   const demoFinish = (label: string) => {
     setLoading(true);
@@ -180,7 +182,8 @@ export default function LoginPage() {
           </div>
           <p className="mt-1.5 text-sm text-slate-500">Choose your role and how you'd like to continue.</p>
 
-          {/* Role selection */}
+          {/* Role selection (demo only — in live, your role comes from your account) */}
+          {!live && (
           <div className="mt-6">
             <p className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Your role</p>
             <div className="grid grid-cols-2 gap-2.5">
@@ -196,6 +199,12 @@ export default function LoginPage() {
               })}
             </div>
           </div>
+          )}
+          {live && (
+            <p className="mt-6 rounded-2xl border border-mjblue/15 bg-mjblue-50/50 p-3 text-xs text-mjblue-700">
+              Your role is set by your administrator — sign in with your work account.
+            </p>
+          )}
 
           {/* Method tabs */}
           <div className="mt-6 flex rounded-full bg-navy/5 p-1">
