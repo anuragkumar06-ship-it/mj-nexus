@@ -24,7 +24,7 @@ export async function GET() {
 
   // Probe an anon insert (then clean up) to see if RLS requires an authenticated session.
   let anonInsert: { status: number; body: string } = { status: 0, body: "" };
-  const probeId = `diag-${Date.now()}`;
+  const probeId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "00000000-0000-4000-8000-000000000000";
   try {
     const r = await fetch(`${url}/rest/v1/candidates`, {
       method: "POST",
