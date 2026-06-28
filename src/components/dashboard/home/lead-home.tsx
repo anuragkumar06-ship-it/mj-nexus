@@ -17,6 +17,7 @@ import { Reveal } from "@/components/shared/reveal";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
 import { initials } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import { usePeople } from "@/components/app/people";
 
 export function LeadHome() {
@@ -63,7 +64,7 @@ export function LeadHome() {
                 return (
                   <Link key={s.id} href="/dashboard/workspace" className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5 transition-colors hover:border-mjblue/20">
                     <div className="flex items-center gap-3">
-                      <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(s.internId)?.name ?? "")}</div>
+                      <Avatar name={personById(s.internId)?.name ?? ""} url={personById(s.internId)?.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-navy">{task?.title}</p>
                         <p className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -107,7 +108,7 @@ export function LeadHome() {
           <div className="grid gap-3 sm:grid-cols-2">
             {reports.map((r) => (
               <Link key={r.id} href="/dashboard/team" className="flex items-center gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-card">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(r.name)}</div>
+                <Avatar name={r.name} url={r.avatarUrl} className="h-10 w-10" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-navy">{r.name}</p>
                   <p className="truncate text-xs text-slate-500">{r.title}</p>

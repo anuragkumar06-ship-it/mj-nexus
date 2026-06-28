@@ -4,11 +4,18 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { people as seedPeople, type Person, type Role } from "@/lib/org";
 import { isSupabaseConfigured } from "@/lib/config";
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@mjconsultancy.com")
+  .toLowerCase()
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 interface PeopleCtx {
   people: Person[];
   loading: boolean;
   live: boolean;
   personById: (id?: string) => Person | undefined;
+  isAuthorized: (p: Person) => boolean;
   reportsOf: (managerId?: string) => Person[];
   internsAll: () => Person[];
   leadsAll: () => Person[];
@@ -24,6 +31,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   const live = isSupabaseConfigured();
   const [people, setPeople] = useState<Person[]>(live ? [] : seedPeople);
   const [loading, setLoading] = useState(live);
+  const [candidateEmails, setCandidateEmails] = useState<Set<string>>(new Set());
 
   const reload = useCallback(async () => {
     if (!live) return;
@@ -31,6 +39,11 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       const { loadProfiles } = await import("@/lib/supabase/profiles");
       const ps = await loadProfiles();
       setPeople(ps);
+      try {
+        const { loadCandidates } = await import("@/lib/supabase/recruitment-data");
+        const cs = await loadCandidates();
+        setCandidateEmails(new Set(cs.map((c) => (c.email ?? "").toLowerCase()).filter(Boolean)));
+      } catch {}
     } catch {
       setPeople((prev) => (prev.length ? prev : seedPeople));
     } finally {
@@ -52,8 +65,17 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   }, [live, reload]);
 
   const personById = useCallback((id?: string) => people.find((p) => p.id === id), [people]);
-  const reportsOf = useCallback((managerId?: string) => people.filter((p) => p.managerId === managerId), [people]);
-  const internsAll = useCallback(() => people.filter((p) => p.role === "intern"), [people]);
+  const isAuthorized = useCallback(
+    (p: Person) => {
+      if (!live) return true;
+      if (p.role === "management" || p.role === "hr" || p.role === "lead") return true;
+      const em = (p.email ?? "").toLowerCase();
+      return candidateEmails.has(em) || ADMIN_EMAILS.includes(em);
+    },
+    [live, candidateEmails]
+  );
+  const reportsOf = useCallback((managerId?: string) => people.filter((p) => p.managerId === managerId && isAuthorized(p)), [people, isAuthorized]);
+  const internsAll = useCallback(() => people.filter((p) => p.role === "intern" && isAuthorized(p)), [people, isAuthorized]);
   const leadsAll = useCallback(() => people.filter((p) => p.role === "lead"), [people]);
   const hrAll = useCallback(() => people.filter((p) => p.role === "hr"), [people]);
 
@@ -102,7 +124,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <Ctx.Provider value={{ people, loading, live, personById, reportsOf, internsAll, leadsAll, hrAll, updatePerson, addPerson, removePerson }}>
+    <Ctx.Provider value={{ people, loading, live, personById, isAuthorized, reportsOf, internsAll, leadsAll, hrAll, updatePerson, addPerson, removePerson }}>
       {children}
     </Ctx.Provider>
   );

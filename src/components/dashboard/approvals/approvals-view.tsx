@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { useApp, type ApprovalRequest, type Attachment } from "@/components/app/store";
 import { initials, type Role } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import { usePeople } from "@/components/app/people";
 import { burstConfetti } from "@/lib/confetti";
 
@@ -270,7 +271,7 @@ export function ApprovalsView() {
                 {inbox.map((r) => (
                   <motion.div layout key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.3 }} onClick={() => setDetailReq(r)} className="flex cursor-pointer flex-col gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-4 transition-colors hover:border-mjblue/20 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-start gap-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(r.requesterId)?.name ?? "")}</div>
+                      <Avatar name={personById(r.requesterId)?.name ?? ""} url={personById(r.requesterId)?.avatarUrl} className="h-10 w-10" textClassName="text-[11px]" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><Badge tone="blue">{r.type}</Badge><span className="text-[11px] text-slate-400">{r.createdAt}</span></div>
                         <p className="mt-1 text-sm font-semibold text-navy">{r.title}</p>
@@ -302,7 +303,7 @@ export function ApprovalsView() {
               {history.map((r) => (
                 <div key={r.id} onClick={() => setDetailReq(r)} className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5 transition-colors hover:border-mjblue/20">
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(r.requesterId)?.name ?? "")}</div>
+                    <Avatar name={personById(r.requesterId)?.name ?? ""} url={personById(r.requesterId)?.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2"><Badge tone="blue">{r.type}</Badge><span className="text-[11px] text-slate-400">{r.createdAt}</span></div>
                       <p className="mt-1 truncate text-sm font-semibold text-navy">{r.title}</p>
@@ -400,7 +401,7 @@ export function ApprovalsView() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(detailReq.requesterId)?.name ?? "")}</div>
+                <Avatar name={personById(detailReq.requesterId)?.name ?? ""} url={personById(detailReq.requesterId)?.avatarUrl} className="h-10 w-10" textClassName="text-[11px]" />
                 <div><p className="text-sm font-semibold text-navy">{personById(detailReq.requesterId)?.name}</p><p className="text-xs text-slate-500">to {personById(detailReq.approverId)?.name}</p></div>
               </div>
               <Badge tone={statusTone[detailReq.status]}>{detailReq.status}</Badge>

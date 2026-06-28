@@ -42,7 +42,7 @@ const ROLE_OPTIONS: Role[] = ["intern", "lead", "hr", "management"];
 
 export function PeopleDirectory() {
   const { tasks, feedback, requests } = useApp();
-  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, updatePerson, addPerson, removePerson } = usePeople();
+  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, isAuthorized, updatePerson, addPerson, removePerson } = usePeople();
   const { user } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<Role | "all">("all");
@@ -52,16 +52,18 @@ export function PeopleDirectory() {
   const [nf, setNf] = useState<{ name: string; email: string; role: Role; team: string; start: string; end: string }>({ name: "", email: "", role: "intern", team: "", start: "", end: "" });
 
   const directory = people.filter(
-    (p) => (tab === "all" ? p.role !== "management" : p.role === tab) && p.name.toLowerCase().includes(query.toLowerCase())
+    (p) => (tab === "all" ? p.role !== "management" : p.role === tab) && p.name.toLowerCase().includes(query.toLowerCase()) && isAuthorized(p)
   );
+  const unauthorized = people.filter((p) => !isAuthorized(p));
   const sel = personById(selId) ?? directory[0] ?? people[0];
 
   const interns = internsAll();
   const avgPerf = interns.length ? Math.round(interns.reduce((s, p) => s + (p.performance ?? 0), 0) / interns.length) : 0;
   const managerOptions = people.filter((p) => p.role !== "intern");
+  const authorizedTotal = people.filter(isAuthorized).length;
 
   const summaryKpis = [
-    { label: "Total People", value: people.length, icon: <Users className="h-5 w-5" />, spark: [1, 1, 1, 1, 1, people.length] },
+    { label: "Total People", value: authorizedTotal, icon: <Users className="h-5 w-5" />, spark: [1, 1, 1, 1, 1, authorizedTotal] },
     { label: "Interns", value: interns.length, icon: <GraduationCap className="h-5 w-5" />, spark: [0, 0, 1, 1, 1, interns.length] },
     { label: "Avg Intern Perf", value: avgPerf, suffix: "%", icon: <Gauge className="h-5 w-5" />, spark: [0, 0, 0, 0, 0, avgPerf] },
     { label: "Team Leads", value: leadsAll().length, icon: <ShieldCheck className="h-5 w-5" />, spark: [0, 0, 0, 0, 0, leadsAll().length] },
@@ -157,6 +159,23 @@ export function PeopleDirectory() {
           </Reveal>
         ))}
       </div>
+
+      {unauthorized.length > 0 && (
+        <Card>
+          <CardHeader title="Can't sign in" subtitle="Accounts not on your allowlist — hidden from the directory, attendance & everywhere else" icon={<ShieldCheck className="h-5 w-5" />} action={<Badge tone="red">{unauthorized.length}</Badge>} />
+          <div className="space-y-2">
+            {unauthorized.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <Avatar name={p.name} url={p.avatarUrl} className="h-8 w-8" textClassName="text-[10px]" />
+                  <div className="min-w-0"><p className="truncate text-sm font-medium text-navy">{p.name}</p><p className="truncate text-xs text-slate-400">{p.email || "—"}</p></div>
+                </div>
+                <button onClick={() => doRemove(p.id, p.name)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-100"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         {/* Directory list */}

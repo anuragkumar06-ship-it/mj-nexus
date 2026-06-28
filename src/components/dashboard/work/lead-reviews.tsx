@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { useApp, type Submission, type Priority } from "@/components/app/store";
 import { initials } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import { usePeople } from "@/components/app/people";
 import { burstConfetti } from "@/lib/confetti";
 
@@ -101,7 +102,7 @@ export function LeadReviews() {
               return (
                 <button key={s.id} onClick={() => openReview(s)} className="rounded-2xl border border-navy/5 bg-offwhite/60 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-mjblue/20 hover:shadow-card">
                   <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(personById(s.internId)?.name ?? "")}</div>
+                    <Avatar name={personById(s.internId)?.name ?? ""} url={personById(s.internId)?.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-navy">{task?.title}</p>
                       <p className="text-xs text-slate-500">{personById(s.internId)?.name} · {s.submittedAt}</p>
@@ -133,7 +134,7 @@ export function LeadReviews() {
                     <div key={t.id} className="rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
                       <p className="text-sm font-medium leading-snug text-navy">{t.title}</p>
                       <div className="mt-2 flex items-center gap-1.5">
-                        <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-brand text-[9px] font-bold text-white">{initials(personById(t.assigneeId)?.name ?? "")}</span>
+                        <Avatar name={personById(t.assigneeId)?.name ?? ""} url={personById(t.assigneeId)?.avatarUrl} className="h-6 w-6" textClassName="text-[9px]" />
                         <span className="text-[11px] text-slate-500">{personById(t.assigneeId)?.name.split(" ")[0]}</span>
                         <span className="ml-auto text-[11px] text-slate-400">{t.due}</span>
                       </div>
@@ -164,7 +165,7 @@ export function LeadReviews() {
         {reviewSub && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 rounded-2xl bg-offwhite/60 p-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(personById(reviewSub.internId)?.name ?? "")}</div>
+              <Avatar name={personById(reviewSub.internId)?.name ?? ""} url={personById(reviewSub.internId)?.avatarUrl} className="h-10 w-10" />
               <div><p className="text-sm font-semibold text-navy">{personById(reviewSub.internId)?.name}</p><p className="text-xs text-slate-500">Submitted {reviewSub.submittedAt}</p></div>
             </div>
             <div>

@@ -17,6 +17,7 @@ import { Reveal } from "@/components/shared/reveal";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
 import { initials } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import { usePeople } from "@/components/app/people";
 import { useRecruitment } from "@/components/dashboard/recruitment-context";
 import { useInterviews } from "@/components/dashboard/interviews-context";
@@ -119,7 +120,7 @@ export function HrHome() {
           <div className="grid gap-3 sm:grid-cols-2">
             {myReports.map((r) => (
               <div key={r.id} className="flex items-center gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(r.name)}</div>
+                <Avatar name={r.name} url={r.avatarUrl} className="h-10 w-10" />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-navy">{r.name}</p><p className="truncate text-xs text-slate-500">{r.title}</p></div>
                 <span className="text-sm font-bold text-navy">{r.performance}</span>
               </div>

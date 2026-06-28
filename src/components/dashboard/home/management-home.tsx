@@ -20,6 +20,7 @@ import { Reveal } from "@/components/shared/reveal";
 import { RadarCompare } from "@/components/dashboard/charts";
 import { useApp } from "@/components/app/store";
 import { initials } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import { usePeople } from "@/components/app/people";
 import { useAuth } from "@/components/app/auth";
 
@@ -134,7 +135,7 @@ export function ManagementHome() {
                 <Link href="/dashboard/people" className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 transition-transform hover:-translate-y-0.5">
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700"><TrendingUp className="h-3.5 w-3.5" /> Top performer</p>
                   <div className="mt-2 flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(top.name)}</div>
+                    <Avatar name={top.name} url={top.avatarUrl} className="h-10 w-10" />
                     <div><p className="text-sm font-semibold text-navy">{top.name}</p><p className="text-xs text-slate-500">{top.title} · {top.performance ?? "—"}</p></div>
                     <ArrowUpRight className="ml-auto h-4 w-4 text-emerald-500" />
                   </div>
@@ -143,7 +144,7 @@ export function ManagementHome() {
                 <Link href="/dashboard/people" className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 transition-transform hover:-translate-y-0.5">
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-700"><TriangleAlert className="h-3.5 w-3.5" /> Needs attention</p>
                   <div className="mt-2 flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(atRisk.name)}</div>
+                    <Avatar name={atRisk.name} url={atRisk.avatarUrl} className="h-10 w-10" />
                     <div><p className="text-sm font-semibold text-navy">{atRisk.name}</p><p className="text-xs text-slate-500">{atRisk.title} · {atRisk.performance ?? "—"}</p></div>
                     <ArrowUpRight className="ml-auto h-4 w-4 text-amber-500" />
                   </div>

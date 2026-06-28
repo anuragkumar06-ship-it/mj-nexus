@@ -15,6 +15,7 @@ import { CertificatesProvider, useCertificates } from "@/components/dashboard/ce
 import { CertificatePreview, downloadCert } from "@/components/dashboard/certificates/certificate-preview";
 import { CERT_TYPES, certTitle, defaultMessage, type Certificate, type CertType } from "@/lib/certificates";
 import { initials, type Person } from "@/lib/org";
+import { Avatar } from "@/components/shared/avatar";
 import type { Attachment } from "@/components/app/store";
 import { burstConfetti } from "@/lib/confetti";
 
@@ -121,7 +122,7 @@ function CertificatesView() {
               {requests.map((c) => (
                 <div key={c.id} className="flex flex-col gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(nameOf(c))}</div>
+                    <Avatar name={nameOf(c)} url={personById(c.recipientId)?.avatarUrl} className="h-10 w-10" textClassName="text-[11px]" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2"><Badge tone="blue">{c.type}</Badge><span className="text-[11px] text-slate-400">{c.createdAt}</span></div>
                       <p className="mt-1 text-sm font-semibold text-navy">{nameOf(c)}</p>
@@ -151,7 +152,7 @@ function CertificatesView() {
               {myRequests.map((c) => (
                 <div key={c.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(nameOf(c))}</div>
+                    <Avatar name={nameOf(c)} url={personById(c.recipientId)?.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                     <div className="min-w-0"><p className="truncate text-sm font-semibold text-navy">{nameOf(c)}</p><p className="truncate text-xs text-slate-500">{c.type}</p></div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -197,7 +198,7 @@ function CertificatesView() {
               {issued.map((c) => (
                 <div key={c.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(nameOf(c))}</div>
+                    <Avatar name={nameOf(c)} url={personById(c.recipientId)?.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                     <div className="min-w-0"><p className="truncate text-sm font-semibold text-navy">{nameOf(c)}</p><p className="truncate text-xs text-slate-500">{c.type} · {c.createdAt}</p></div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
