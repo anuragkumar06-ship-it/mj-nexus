@@ -25,7 +25,7 @@ import { roleNav } from "@/components/app/roles";
 import { useAuth } from "@/components/app/auth";
 import { useNotifications } from "@/components/app/notifications";
 import { AiAssistant } from "@/components/dashboard/ai-assistant";
-import { ROLE_META, initials, type Role } from "@/lib/org";
+import { ROLE_META, type Role } from "@/lib/org";
 import { usePeople } from "@/components/app/people";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
@@ -180,7 +180,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
     ? people
         .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 6)
-        .map((p) => ({ label: p.name, sub: `${p.title} · ${p.team ?? "—"}`, href: personTarget }))
+        .map((p) => ({ label: p.name, sub: `${p.title} · ${p.team ?? "—"}`, href: personTarget, avatarUrl: p.avatarUrl }))
     : [];
 
   const go = (href: string) => {
@@ -223,7 +223,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                 ) : (
                   results.map((r, i) => (
                     <button key={i} onClick={() => go(r.href)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-mjblue-50/60">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-brand text-[10px] font-bold text-white">{initials(r.label)}</span>
+                      <Avatar name={r.label} url={r.avatarUrl} className="h-8 w-8" textClassName="text-[10px]" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-navy">{r.label}</p>
                         <p className="truncate text-xs text-slate-500">{r.sub}</p>
