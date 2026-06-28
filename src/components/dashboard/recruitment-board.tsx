@@ -60,6 +60,8 @@ function downloadCV(c: Candidate) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
+const isImageName = (n?: string) => /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(n ?? "");
+
 export function RecruitmentBoard() {
   const { candidates: allCandidates } = useRecruitment();
   const [role, setRole] = useState<(typeof roleFilters)[number]>("All");
@@ -225,7 +227,11 @@ function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null
         c ? (
           <>
             <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
-            <Button size="sm" onClick={() => downloadCV(c)}><Download className="h-4 w-4" /> Download CV</Button>
+            {c.resumeUrl ? (
+              <Button size="sm" onClick={() => window.open(c.resumeUrl!, "_blank", "noopener,noreferrer")}><Download className="h-4 w-4" /> Open CV</Button>
+            ) : (
+              <Button size="sm" onClick={() => downloadCV(c)}><Download className="h-4 w-4" /> Download CV</Button>
+            )}
           </>
         ) : null
       }
@@ -262,16 +268,36 @@ function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null
 
           <div>
             <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400"><FileText className="h-3.5 w-3.5" /> Resume / CV</p>
-            <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-card">
-              <div className="border-b border-navy/10 pb-3">
-                <p className="text-base font-bold text-navy">{c.name}</p>
-                <p className="text-xs text-slate-500">{c.role} Intern Candidate · {c.email}</p>
+            {c.resumeUrl ? (
+              <div className="rounded-2xl border border-navy/10 bg-white p-4 shadow-card">
+                {isImageName(c.resumeName) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.resumeUrl} alt={c.resumeName ?? "Resume"} className="max-h-80 w-full rounded-xl bg-offwhite/60 object-contain" />
+                ) : (
+                  <div className="flex items-center gap-3 rounded-xl bg-offwhite/60 p-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-mjblue-50 text-mjblue"><FileText className="h-5 w-5" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-navy">{c.resumeName ?? "Resume.pdf"}</p>
+                      <p className="text-xs text-slate-500">Uploaded CV</p>
+                    </div>
+                  </div>
+                )}
+                <button onClick={() => window.open(c.resumeUrl!, "_blank", "noopener,noreferrer")} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-navy/5 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10">
+                  <Download className="h-3.5 w-3.5" /> Open CV in new tab
+                </button>
               </div>
-              <CVSection title="Education">{c.college}</CVSection>
-              <CVSection title="Experience">{c.experience}</CVSection>
-              <CVSection title="Skills">{c.skills.join(" · ")}</CVSection>
-              <CVSection title="Application">{c.source} · Applied {c.appliedDate} · AI Fit {c.fitScore}/100</CVSection>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-card">
+                <div className="border-b border-navy/10 pb-3">
+                  <p className="text-base font-bold text-navy">{c.name}</p>
+                  <p className="text-xs text-slate-500">{c.role} Intern Candidate · {c.email}</p>
+                </div>
+                <CVSection title="Education">{c.college}</CVSection>
+                <CVSection title="Experience">{c.experience}</CVSection>
+                <CVSection title="Skills">{c.skills.join(" · ")}</CVSection>
+                <CVSection title="Application">{c.source} · Applied {c.appliedDate} · AI Fit {c.fitScore}/100</CVSection>
+              </div>
+            )}
           </div>
         </div>
       )}

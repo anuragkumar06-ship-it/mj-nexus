@@ -25,6 +25,8 @@ export interface Candidate {
   experience: string;
   skills: string[];
   email: string;
+  resumeUrl?: string;
+  resumeName?: string;
 }
 
 export interface Intern {

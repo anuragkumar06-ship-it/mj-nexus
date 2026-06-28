@@ -8,6 +8,7 @@ create table if not exists public.candidates (
   name text, role text, college text, state text, source text,
   stage text default 'Applied', fit_score int, experience text,
   skills text[] default '{}', email text,
+  resume_url text, resume_name text,
   created_at timestamptz not null default now()
 );
 
@@ -17,6 +18,10 @@ create table if not exists public.interviews (
   mode text, status text default 'Upcoming', score int,
   created_at timestamptz not null default now()
 );
+
+-- Resume/CV columns (safe to re-run on an existing candidates table)
+alter table public.candidates add column if not exists resume_url text;
+alter table public.candidates add column if not exists resume_name text;
 
 -- RLS: any signed-in user can read/write recruitment data
 do $$

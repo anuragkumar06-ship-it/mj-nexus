@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Plus, Download, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
+import { FileDropzone } from "@/components/app/upload";
 import { useToast } from "@/components/ui/toast";
 import { useRecruitment } from "@/components/dashboard/recruitment-context";
 import { downloadFile } from "@/lib/utils";
 import { burstConfetti } from "@/lib/confetti";
 import type { Candidate, Role } from "@/lib/data";
+import type { Attachment } from "@/components/app/store";
 
 export function AddCandidateButton() {
   const { addCandidate } = useRecruitment();
@@ -21,6 +23,7 @@ export function AddCandidateButton() {
   const [source, setSource] = useState<Candidate["source"]>("LinkedIn");
   const [skills, setSkills] = useState("");
   const [email, setEmail] = useState("");
+  const [cv, setCv] = useState<Attachment[]>([]);
 
   const reset = () => {
     setName("");
@@ -30,6 +33,7 @@ export function AddCandidateButton() {
     setSource("LinkedIn");
     setSkills("");
     setEmail("");
+    setCv([]);
   };
 
   const submit = (e: React.FormEvent) => {
@@ -50,6 +54,8 @@ export function AddCandidateButton() {
         ? skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 5)
         : ["General"],
       email: email.trim() || `${name.trim().toLowerCase().replace(/\s+/g, ".")}@example.com`,
+      resumeUrl: cv[0]?.url,
+      resumeName: cv[0]?.name,
     };
     addCandidate(c);
     burstConfetti();
@@ -137,6 +143,10 @@ export function AddCandidateButton() {
           <div>
             <label className={labelClass}>Skills (comma separated)</label>
             <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="SEO, Content, Analytics" className={fieldClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Resume / CV <span className="font-normal text-slate-400">(PDF or image, optional)</span></label>
+            <FileDropzone files={cv} onChange={setCv} max={1} accept="application/pdf,image/*" hint="Upload the candidate's CV — PDF or image" />
           </div>
         </form>
       </Modal>
