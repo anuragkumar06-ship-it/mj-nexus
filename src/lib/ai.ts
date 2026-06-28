@@ -46,7 +46,7 @@ async function openaiChat(messages: ChatMessage[], opts: ChatOpts): Promise<stri
 async function geminiChat(messages: ChatMessage[], opts: ChatOpts): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY missing");
-  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
   const systemText = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
   const contents = messages
     .filter((m) => m.role !== "system")

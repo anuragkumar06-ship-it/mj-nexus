@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send, Bot } from "lucide-react";
+import { useAuth } from "@/components/app/auth";
+import { useApp } from "@/components/app/store";
+import { usePeople } from "@/components/app/people";
 import { cn } from "@/lib/utils";
 
 interface Msg {
@@ -13,7 +16,7 @@ interface Msg {
 
 const greeting: Msg = {
   role: "ai",
-  text: "Hi Anurag 👋 I'm your MJ Nexus AI. Ask me about candidates, interns, hiring, or certificates — or pick a suggestion below.",
+  text: "Hi there 👋 I'm your MJ Nexus AI. Ask me about your candidates, interns, tasks, or approvals — I answer from your live data.",
 };
 
 const prompts = [
@@ -23,23 +26,6 @@ const prompts = [
   "How many certificates were issued?",
 ];
 
-function answer(q: string): string {
-  const s = q.toLowerCase();
-  if (s.includes("top") || s.includes("best") || s.includes("candidate"))
-    return "Your top candidates right now are Ananya Iyer (95), Arjun Kumar (93), and Aarav Sharma (92) — all flagged as Strong Hire by the AI engine. Aarav has an interview scheduled for Jun 27.";
-  if (s.includes("hir") || s.includes("summary") || s.includes("month") || s.includes("perform"))
-    return "This month: 271 applicants and 24 hires (7.3% conversion). Marketing is converting ~18% faster than last month, and average performance after hire is 88%.";
-  if (s.includes("intern") || s.includes("attention") || s.includes("risk"))
-    return "Rohan Mehta (81, trending down) and Kabir Singh (76) could use a check-in. Your standout is Ananya Iyer at 96 with a 98 reliability index.";
-  if (s.includes("certificate") || s.includes("cert"))
-    return "142 certificates have been issued (28 this month) plus 64 recommendation letters. Open the Certificates module to generate a new completion or appreciation certificate.";
-  if (s.includes("recommend") || s.includes("letter"))
-    return "Sure — go to Certificates → Certificate Studio, choose the recipient, and I'll generate a personalized recommendation letter from their performance data.";
-  if (s.includes("interview"))
-    return "There are 18 interviews scheduled this week and 7 pending review. Arjun Kumar's last interview scored 91 (Strong Hire).";
-  return "Based on current MJ Nexus data, I'd start with the Analytics module for the full picture. You can ask me about candidates, interns, hiring trends, interviews, or certificates.";
-}
-
 export function AiAssistant() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -47,6 +33,34 @@ export function AiAssistant() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const { user, role } = useAuth();
+  const { tasks, requests, feedback } = useApp();
+  const { people, internsAll, leadsAll, reportsOf } = usePeople();
+
+  const buildContext = () => {
+    const L: string[] = [`Signed in as ${user.name} (role: ${role}).`];
+    const count = (arr: { status: string }[], s: string) => arr.filter((x) => x.status === s).length;
+    if (role === "intern") {
+      const mine = tasks.filter((t) => t.assigneeId === user.id);
+      L.push(`My tasks: ${mine.length} total — To Do ${count(mine, "To Do")}, In Progress ${count(mine, "In Progress")}, Submitted ${count(mine, "Submitted")}, Approved ${count(mine, "Approved")}.`);
+      L.push(`My requests raised: ${requests.filter((r) => r.requesterId === user.id).length}. Feedback received: ${feedback.filter((f) => f.internId === user.id).length}.`);
+      L.push(`My performance ${user.performance ?? "n/a"}, reliability ${user.reliability ?? "n/a"}, growth ${user.growth ?? "n/a"}.`);
+    } else if (role === "lead") {
+      const team = reportsOf(user.id);
+      L.push(`My team (${team.length}): ${team.map((t) => t.name).join(", ") || "no interns assigned yet"}.`);
+      const subs = tasks.filter((t) => t.assignerId === user.id);
+      L.push(`Tasks I assigned: ${subs.length}. Approvals waiting on me: ${requests.filter((r) => r.approverId === user.id && r.status === "Pending").length}.`);
+    } else if (role === "hr") {
+      L.push(`Interns in the org: ${internsAll().length}. Approvals waiting on me: ${requests.filter((r) => r.approverId === user.id && r.status === "Pending").length}.`);
+    } else {
+      const interns = internsAll();
+      const ranked = [...interns].sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0));
+      L.push(`Organization: ${interns.length} interns, ${leadsAll().length} leads, ${people.length} people total.`);
+      L.push(`Approvals in my queue: ${requests.filter((r) => r.approverId === user.id && r.status === "Pending").length}.`);
+      L.push(ranked.length ? `Top performer: ${ranked[0].name} (${ranked[0].performance ?? "n/a"}). Needs attention: ${ranked[ranked.length - 1].name} (${ranked[ranked.length - 1].performance ?? "n/a"}).` : "No interns added yet.");
+    }
+    return L.join("\n");
+  };
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -66,12 +80,13 @@ export function AiAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: next.map((m) => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
+          context: buildContext(),
         }),
       });
       const data = await res.json();
-      setMessages((m) => [...m, { role: "ai", text: data.reply || answer(t) }]);
+      setMessages((m) => [...m, { role: "ai", text: data.reply || "I couldn't generate a reply just now — please try again." }]);
     } catch {
-      setMessages((m) => [...m, { role: "ai", text: answer(t) }]);
+      setMessages((m) => [...m, { role: "ai", text: `I couldn't reach the assistant. Here's your live summary:\n\n${buildContext()}` }]);
     } finally {
       setTyping(false);
     }

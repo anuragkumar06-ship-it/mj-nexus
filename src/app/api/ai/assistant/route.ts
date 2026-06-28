@@ -4,44 +4,36 @@ import { chat, isAiConfigured, type ChatMessage } from "@/lib/ai";
 export const runtime = "nodejs";
 
 const SYSTEM =
-  "You are MJ Nexus AI, the assistant inside an AI-powered internship management platform for MJ Marketing Consultancy. " +
-  "Be concise, warm, and specific. You help with candidates, interns, hiring, interviews, performance, certificates, and approvals. " +
-  "Keep answers under 90 words unless asked for detail.";
+  "You are MJ Nexus AI, the assistant inside an internship-management platform for MJ Marketing Consultancy. " +
+  "Answer ONLY from the live data provided below. If a number is 0 or a list is empty, say so plainly — never invent candidates, interns, names, or numbers. " +
+  "Be concise (under 90 words), warm, and specific.";
 
-function fallback(q: string): string {
-  const s = q.toLowerCase();
-  if (s.includes("top") || s.includes("best") || s.includes("candidate"))
-    return "Your top candidates right now are Ananya Iyer (95), Arjun Kumar (93), and Aarav Sharma (92) — all Strong Hire. Aarav interviews Jun 27.";
-  if (s.includes("hir") || s.includes("summary") || s.includes("month") || s.includes("perform"))
-    return "This month: 271 applicants, 24 hires (7.3% conversion). Marketing is converting ~18% faster than last month; avg performance after hire is 88%.";
-  if (s.includes("intern") || s.includes("attention") || s.includes("risk"))
-    return "Rohan Mehta (81, trending down) and Kabir Singh (76) could use a check-in. Standout: Ananya Iyer at 96 with 98 reliability.";
-  if (s.includes("certificate") || s.includes("cert"))
-    return "142 certificates issued (28 this month) plus 64 recommendation letters. Use the Certificates module to generate a new one.";
-  if (s.includes("recommend") || s.includes("letter"))
-    return "Head to Certificates → Certificate Studio, pick the recipient, and I'll draft a personalized recommendation from their performance data.";
-  if (s.includes("interview"))
-    return "18 interviews are scheduled this week, 7 pending review. Arjun Kumar's last interview scored 91 (Strong Hire).";
-  if (s.includes("approval") || s.includes("request"))
-    return "There are pending approvals across teams — leads handle their own, and HR/lead escalations route to Management.";
-  return "Based on current MJ Nexus data, start with the Analytics module for the full picture. Ask me about candidates, interns, hiring, interviews, or certificates.";
+/** Honest, data-driven reply when the AI model isn't available. */
+function offlineReply(context: string): string {
+  if (context && context.trim()) {
+    return `Here's a live summary from your workspace:\n\n${context}\n\n(The AI model isn't responding right now, so this is a direct data summary rather than a generated answer.)`;
+  }
+  return "I don't see any data in your workspace yet. Once you add candidates, tasks, or approvals, I'll summarize and answer questions about them here.";
 }
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const messages: ChatMessage[] = Array.isArray(body.messages) ? body.messages : [];
-  const last = messages[messages.length - 1]?.content ?? body.question ?? "";
+  const context = typeof body.context === "string" ? body.context : "";
 
   if (!isAiConfigured()) {
-    return NextResponse.json({ reply: fallback(last), source: "demo" });
+    return NextResponse.json({ reply: offlineReply(context), source: "demo" });
   }
   try {
-    const reply = await chat([{ role: "system", content: SYSTEM }, ...messages], {
-      maxTokens: 240,
-      temperature: 0.5,
+    const system =
+      SYSTEM +
+      (context ? `\n\n--- LIVE DATA FOR THIS USER ---\n${context}\n--- END DATA ---` : "\n\n(No data was provided; tell the user their workspace looks empty.)");
+    const reply = await chat([{ role: "system", content: system }, ...messages], {
+      maxTokens: 300,
+      temperature: 0.4,
     });
-    return NextResponse.json({ reply: reply || fallback(last), source: "live" });
-  } catch {
-    return NextResponse.json({ reply: fallback(last), source: "fallback" });
+    return NextResponse.json({ reply: reply || offlineReply(context), source: "live" });
+  } catch (e) {
+    return NextResponse.json({ reply: offlineReply(context), source: "fallback", error: String(e).slice(0, 300) });
   }
 }
