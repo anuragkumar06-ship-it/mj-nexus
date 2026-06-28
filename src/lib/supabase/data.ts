@@ -17,7 +17,7 @@ const COLS: Record<Entity, Record<string, string>> = {
   tasks: { title: "title", description: "description", assigneeId: "assignee_id", assignerId: "assigner_id", team: "team", status: "status", priority: "priority", due: "due", tag: "tag", submissionId: "submission_id" },
   submissions: { taskId: "task_id", internId: "intern_id", note: "note", files: "files", status: "status", reviewNote: "review_note", submittedAt: "submitted_at" },
   standups: { internId: "intern_id", completed: "completed", priorities: "priorities", challenges: "challenges", date: "date" },
-  requests: { type: "type", title: "title", detail: "detail", requesterId: "requester_id", approverId: "approver_id", status: "status", files: "files", decisionNote: "decision_note", createdAt: "created_at_label" },
+  requests: { type: "type", title: "title", detail: "detail", requesterId: "requester_id", approverId: "approver_id", status: "status", files: "files", decisionNote: "decision_note", createdAt: "created_at_label", fromDate: "from_date", toDate: "to_date", reason: "reason" },
   feedback: { internId: "intern_id", fromId: "from_id", rating: "rating", note: "note", date: "date" },
 };
 

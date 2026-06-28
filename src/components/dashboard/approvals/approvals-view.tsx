@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Plus, Inbox, Send, ClipboardList, Paperclip } from "lucide-react";
+import { Check, X, Plus, Inbox, Send, ClipboardList, Paperclip, CalendarDays } from "lucide-react";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
@@ -26,6 +26,19 @@ const typesByRole: Record<Role, string[]> = {
 
 const statusTone: Record<string, "amber" | "green" | "red"> = { Pending: "amber", Approved: "green", Rejected: "red" };
 
+const dayCount = (a?: string, b?: string) =>
+  a && b ? Math.max(1, Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000) + 1) : 0;
+
+function LeaveChip({ r }: { r: ApprovalRequest }) {
+  if (!r.fromDate || !r.toDate) return null;
+  const d = dayCount(r.fromDate, r.toDate);
+  return (
+    <p className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-mjblue-50 px-2 py-0.5 text-[11px] font-semibold text-mjblue-700">
+      <CalendarDays className="h-3 w-3" /> {r.fromDate} → {r.toDate} · {d} day{d > 1 ? "s" : ""}
+    </p>
+  );
+}
+
 export function ApprovalsView() {
   const { user, role } = useAuth();
   const { requests, createRequest, decideRequest } = useApp();
@@ -41,6 +54,11 @@ export function ApprovalsView() {
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [reason, setReason] = useState("");
+  const isLeave = type === "Leave";
+  const leaveDays = dayCount(fromDate, toDate);
 
   const approverId = (() => {
     const mgmtId = people.find((p) => p.role === "management")?.id ?? "m1";
@@ -55,10 +73,29 @@ export function ApprovalsView() {
   };
 
   const submit = () => {
-    if (!title.trim()) { toast({ title: "Add a title", type: "error" }); return; }
-    createRequest({ type, title: title.trim(), detail: detail.trim() || title.trim(), requesterId: user.id, approverId, files });
+    if (isLeave) {
+      if (!fromDate || !toDate) { toast({ title: "Pick your leave dates", type: "error" }); return; }
+      if (new Date(toDate) < new Date(fromDate)) { toast({ title: "End date is before start date", type: "error" }); return; }
+      if (!reason.trim()) { toast({ title: "Add a reason for leave", type: "error" }); return; }
+    } else if (!title.trim()) {
+      toast({ title: "Add a title", type: "error" });
+      return;
+    }
+    const finalTitle = isLeave ? `Leave — ${leaveDays} day${leaveDays > 1 ? "s" : ""}` : title.trim();
+    const finalDetail = isLeave ? reason.trim() : detail.trim() || title.trim();
+    createRequest({
+      type,
+      title: finalTitle,
+      detail: finalDetail,
+      requesterId: user.id,
+      approverId,
+      files,
+      fromDate: isLeave ? fromDate : undefined,
+      toDate: isLeave ? toDate : undefined,
+      reason: isLeave ? reason.trim() : undefined,
+    });
     toast({ title: "Request submitted", description: `Sent to ${personById(approverId)?.name} for approval.`, type: "success" });
-    setTitle(""); setDetail(""); setFiles([]); setOpen(false);
+    setTitle(""); setDetail(""); setFiles([]); setFromDate(""); setToDate(""); setReason(""); setOpen(false);
   };
 
   return (
@@ -91,6 +128,7 @@ export function ApprovalsView() {
                         <div className="flex items-center gap-2"><Badge tone="blue">{r.type}</Badge><span className="text-[11px] text-slate-400">{r.createdAt}</span></div>
                         <p className="mt-1 text-sm font-semibold text-navy">{r.title}</p>
                         <p className="text-xs leading-relaxed text-slate-500">{r.detail}</p>
+                        <LeaveChip r={r} />
                         <p className="mt-1 text-[11px] text-slate-400">from {personById(r.requesterId)?.name}{r.files?.length ? ` · ${r.files.length} attachment` : ""}</p>
                       </div>
                     </div>
@@ -121,6 +159,7 @@ export function ApprovalsView() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2"><Badge tone="blue">{r.type}</Badge><span className="text-[11px] text-slate-400">{r.createdAt}</span></div>
                       <p className="mt-1 truncate text-sm font-semibold text-navy">{r.title}</p>
+                      <LeaveChip r={r} />
                       <p className="truncate text-xs text-slate-500">from {personById(r.requesterId)?.name}{r.decisionNote ? ` · ${r.decisionNote}` : ""}</p>
                     </div>
                   </div>
@@ -145,6 +184,7 @@ export function ApprovalsView() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2"><Badge tone="navy">{r.type}</Badge>{r.files?.length ? <span className="flex items-center gap-0.5 text-[11px] text-slate-400"><Paperclip className="h-3 w-3" />{r.files.length}</span> : null}</div>
                   <p className="mt-1 truncate text-sm font-semibold text-navy">{r.title}</p>
+                  <LeaveChip r={r} />
                   <p className="text-xs text-slate-500">to {personById(r.approverId)?.name}{r.decisionNote ? ` · ${r.decisionNote}` : ""}</p>
                 </div>
                 <Badge tone={statusTone[r.status]}>{r.status}</Badge>
@@ -185,8 +225,21 @@ export function ApprovalsView() {
             <div><label className={labelClass}>Type</label><select value={type} onChange={(e) => setType(e.target.value)} className={fieldClass}>{(typesByRole[role].length ? typesByRole[role] : ["Other"]).map((t) => <option key={t}>{t}</option>)}</select></div>
             <div><label className={labelClass}>Approver</label><input disabled value={personById(approverId)?.name ?? ""} className={`${fieldClass} bg-navy/[0.03] text-slate-500`} /></div>
           </div>
-          <div><label className={labelClass}>Title</label><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Short summary" className={fieldClass} /></div>
-          <div><label className={labelClass}>Details</label><textarea rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="Add context for the approver…" className={textareaClass} /></div>
+          {isLeave ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelClass}>From</label><input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={fieldClass} /></div>
+                <div><label className={labelClass}>To</label><input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className={fieldClass} /></div>
+              </div>
+              {leaveDays > 0 && <p className="text-xs font-semibold text-mjblue">Duration: {leaveDays} day{leaveDays > 1 ? "s" : ""}</p>}
+              <div><label className={labelClass}>Reason</label><textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason for your leave…" className={textareaClass} /></div>
+            </>
+          ) : (
+            <>
+              <div><label className={labelClass}>Title</label><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Short summary" className={fieldClass} /></div>
+              <div><label className={labelClass}>Details</label><textarea rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="Add context for the approver…" className={textareaClass} /></div>
+            </>
+          )}
           <div><label className={labelClass}>Attachment <span className="font-normal text-slate-400">(optional)</span></label><FileDropzone files={files} onChange={setFiles} hint="Supporting docs or screenshots" /></div>
         </div>
       </Modal>

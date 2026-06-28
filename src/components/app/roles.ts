@@ -37,6 +37,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
+    { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
   ],
   hr: [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
@@ -56,6 +57,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
+    { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
   ],
 };
 
@@ -68,7 +70,7 @@ export const routeAccess: Record<string, Role[]> = {
   "/dashboard/ai-engine": ["hr", "management"],
   "/dashboard/interviews": ["hr", "management"],
   "/dashboard/analytics": ["hr", "management"],
-  "/dashboard/learning": ["intern", "lead"],
+  "/dashboard/learning": ["intern", "lead", "hr", "management"],
   "/dashboard/certificates": ["intern", "lead", "hr", "management"],
   "/dashboard/approvals": ["intern", "lead", "hr", "management"],
   "/dashboard/performance": ["intern", "lead", "hr", "management"],

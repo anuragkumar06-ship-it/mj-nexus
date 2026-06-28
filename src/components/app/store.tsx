@@ -56,6 +56,9 @@ export interface ApprovalRequest {
   createdAt: string;
   files?: Attachment[];
   decisionNote?: string;
+  fromDate?: string;
+  toDate?: string;
+  reason?: string;
 }
 export interface Feedback {
   id: string;
