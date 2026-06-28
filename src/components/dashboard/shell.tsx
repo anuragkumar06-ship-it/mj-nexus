@@ -345,6 +345,14 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
+  // Record when the user entered the dashboard today (used by the attendance check-in duration rule).
+  useEffect(() => {
+    try {
+      const key = `mj_session_start_${new Date().toISOString().slice(0, 10)}`;
+      if (!localStorage.getItem(key)) localStorage.setItem(key, String(Date.now()));
+    } catch {}
+  }, []);
+
   return (
     <div className="min-h-screen bg-offwhite">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 bg-navy md:block">

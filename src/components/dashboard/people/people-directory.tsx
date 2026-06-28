@@ -16,6 +16,7 @@ import {
   UserCog,
   Plus,
   Trash2,
+  Check,
 } from "lucide-react";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -42,7 +43,7 @@ const ROLE_OPTIONS: Role[] = ["intern", "lead", "hr", "management"];
 
 export function PeopleDirectory() {
   const { tasks, feedback, requests } = useApp();
-  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, isAuthorized, updatePerson, addPerson, removePerson } = usePeople();
+  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, isAuthorized, updatePerson, addPerson, removePerson, authorizeEmail } = usePeople();
   const { user } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<Role | "all">("all");
@@ -162,7 +163,7 @@ export function PeopleDirectory() {
 
       {unauthorized.length > 0 && (
         <Card>
-          <CardHeader title="Can't sign in" subtitle="Accounts not on your allowlist — hidden from the directory, attendance & everywhere else" icon={<ShieldCheck className="h-5 w-5" />} action={<Badge tone="red">{unauthorized.length}</Badge>} />
+          <CardHeader title="Sign-in requests" subtitle="People who tried to sign in but aren't on your allowlist — Allow to let them in, or Remove" icon={<ShieldCheck className="h-5 w-5" />} action={<Badge tone="red">{unauthorized.length}</Badge>} />
           <div className="space-y-2">
             {unauthorized.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3">
@@ -170,7 +171,10 @@ export function PeopleDirectory() {
                   <Avatar name={p.name} url={p.avatarUrl} className="h-8 w-8" textClassName="text-[10px]" />
                   <div className="min-w-0"><p className="truncate text-sm font-medium text-navy">{p.name}</p><p className="truncate text-xs text-slate-400">{p.email || "—"}</p></div>
                 </div>
-                <button onClick={() => doRemove(p.id, p.name)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-100"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
+                <div className="flex shrink-0 gap-2">
+                  <button onClick={() => { authorizeEmail(p.email); toast({ title: "Access allowed", description: `${p.name || p.email} can now sign in.`, type: "success" }); }} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-white transition-transform hover:scale-[1.03]"><Check className="h-3.5 w-3.5" /> Allow</button>
+                  <button onClick={() => doRemove(p.id, p.name)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-100"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
+                </div>
               </div>
             ))}
           </div>

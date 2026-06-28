@@ -23,6 +23,7 @@ interface PeopleCtx {
   updatePerson: (id: string, patch: Partial<Person>) => Promise<void>;
   addPerson: (p: Person) => Promise<void>;
   removePerson: (id: string) => Promise<void>;
+  authorizeEmail: (email: string) => Promise<void>;
 }
 
 const Ctx = createContext<PeopleCtx | null>(null);
@@ -123,8 +124,40 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [live]
   );
 
+  // Allow a blocked email to sign in by adding it to the candidate allowlist.
+  const authorizeEmail = useCallback(
+    async (email: string) => {
+      const em = (email || "").toLowerCase();
+      if (!em) return;
+      setCandidateEmails((prev) => {
+        const n = new Set(prev);
+        n.add(em);
+        return n;
+      });
+      if (!live) return;
+      try {
+        const { insertCandidate } = await import("@/lib/supabase/recruitment-data");
+        await insertCandidate({
+          id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `c${Date.now()}`,
+          name: email.split("@")[0],
+          role: "Marketing",
+          college: "—",
+          state: "—",
+          source: "Referral",
+          stage: "Onboarded",
+          fitScore: 0,
+          appliedDate: new Date().toISOString().slice(0, 10),
+          experience: "—",
+          skills: [],
+          email,
+        });
+      } catch {}
+    },
+    [live]
+  );
+
   return (
-    <Ctx.Provider value={{ people, loading, live, personById, isAuthorized, reportsOf, internsAll, leadsAll, hrAll, updatePerson, addPerson, removePerson }}>
+    <Ctx.Provider value={{ people, loading, live, personById, isAuthorized, reportsOf, internsAll, leadsAll, hrAll, updatePerson, addPerson, removePerson, authorizeEmail }}>
       {children}
     </Ctx.Provider>
   );
