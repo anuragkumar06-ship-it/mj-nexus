@@ -13,9 +13,14 @@ export function Greeting({ subtitle }: { subtitle?: string }) {
       <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-mjblue/25 blur-3xl" />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-lg font-bold text-white ring-1 ring-white/15">
-            {initials(user.name)}
-          </div>
+          {user.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.avatarUrl} alt={user.name} className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-1 ring-white/15" />
+          ) : (
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-lg font-bold text-white ring-1 ring-white/15">
+              {initials(user.name)}
+            </div>
+          )}
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-sky-200">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />

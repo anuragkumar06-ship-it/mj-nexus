@@ -55,7 +55,6 @@ export function HrHome() {
 
   return (
     <div className="space-y-6">
-      <Reveal><Greeting subtitle="Recruitment, onboarding & certification" /></Reveal>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {kpis.map((k, i) => (

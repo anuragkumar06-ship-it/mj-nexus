@@ -53,6 +53,7 @@ export interface Person {
   tasksTotal?: number;
   internStart?: string;
   internEnd?: string;
+  avatarUrl?: string;
   joined: string;
 }
 

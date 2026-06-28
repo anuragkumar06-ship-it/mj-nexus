@@ -16,6 +16,7 @@ interface AuthCtx {
   live: boolean;
   setRole: (r: Role) => void;
   logout: () => void | Promise<void>;
+  updateUser: (patch: Partial<Person>) => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -34,6 +35,7 @@ function titleFor(role?: string) {
 /* ---------- Demo mode (no Supabase): role picker + seed identity ---------- */
 function DemoAuth({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<Role>("hr");
+  const [override, setOverride] = useState<Partial<Person>>({});
   useEffect(() => {
     try {
       const s = localStorage.getItem(KEY) as Role | null;
@@ -42,6 +44,7 @@ function DemoAuth({ children }: { children: ReactNode }) {
   }, []);
   const setRole = (r: Role) => {
     setRoleState(r);
+    setOverride({});
     try {
       localStorage.setItem(KEY, r);
     } catch {}
@@ -51,8 +54,11 @@ function DemoAuth({ children }: { children: ReactNode }) {
       localStorage.removeItem(KEY);
     } catch {}
   };
-  const user = personById(ROLE_IDENTITY[role])!;
-  return <Ctx.Provider value={{ user, role, live: false, setRole, logout }}>{children}</Ctx.Provider>;
+  const updateUser = async (patch: Partial<Person>) => {
+    setOverride((o) => ({ ...o, ...patch }));
+  };
+  const user = { ...personById(ROLE_IDENTITY[role])!, ...override };
+  return <Ctx.Provider value={{ user, role, live: false, setRole, logout, updateUser }}>{children}</Ctx.Provider>;
 }
 
 /* ---------- Live mode (Supabase): the real signed-in account ---------- */
@@ -87,7 +93,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
         try {
           const { data: prof } = await supabase
             .from("profiles")
-            .select("role,name,team,manager_id,title,performance,reliability,growth,attendance")
+            .select("role,name,team,manager_id,title,performance,reliability,growth,attendance,avatar_url,phone")
             .eq("id", session.user.id)
             .single();
           if (prof) {
@@ -100,6 +106,8 @@ function LiveAuth({ children }: { children: ReactNode }) {
             base.reliability = prof.reliability ?? undefined;
             base.growth = prof.growth ?? undefined;
             base.attendance = prof.attendance ?? undefined;
+            base.avatarUrl = prof.avatar_url ?? undefined;
+            base.phone = prof.phone ?? base.phone;
           }
         } catch {
           // no profile row yet — stays a clean intern
@@ -150,11 +158,21 @@ function LiveAuth({ children }: { children: ReactNode }) {
     } catch {}
   };
 
+  const updateUser = async (patch: Partial<Person>) => {
+    setPerson((p) => (p ? { ...p, ...patch } : p));
+    const id = person?.id;
+    if (!id) return;
+    try {
+      const { updateProfile } = await import("@/lib/supabase/profiles");
+      await updateProfile(id, { name: patch.name, title: patch.title, phone: patch.phone, avatarUrl: patch.avatarUrl });
+    } catch {}
+  };
+
   if (loading) return <BrandLoader />;
   if (!person) return <SignInRequired />;
 
   return (
-    <Ctx.Provider value={{ user: person, role: person.role, live: true, setRole: () => {}, logout }}>
+    <Ctx.Provider value={{ user: person, role: person.role, live: true, setRole: () => {}, logout, updateUser }}>
       {children}
     </Ctx.Provider>
   );

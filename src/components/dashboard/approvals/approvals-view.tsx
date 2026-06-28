@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Plus, Inbox, Send, ClipboardList, Paperclip, CalendarDays } from "lucide-react";
+import { Check, X, Plus, Inbox, Send, ClipboardList, Paperclip, CalendarDays, Trash2 } from "lucide-react";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
@@ -39,14 +39,39 @@ function LeaveChip({ r }: { r: ApprovalRequest }) {
   );
 }
 
+/** Per-user, persisted set of "cleared" record ids (non-destructive — only hides them for you). */
+function useClearedSet(key: string) {
+  const [ids, setIds] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) setIds(new Set(JSON.parse(raw)));
+    } catch {}
+  }, [key]);
+  const clear = (add: string[]) => {
+    setIds((prev) => {
+      const n = new Set(prev);
+      add.forEach((i) => n.add(i));
+      try {
+        localStorage.setItem(key, JSON.stringify([...n]));
+      } catch {}
+      return n;
+    });
+  };
+  return [ids, clear] as const;
+}
+
 export function ApprovalsView() {
   const { user, role } = useAuth();
   const { requests, createRequest, decideRequest } = useApp();
   const { personById, people } = usePeople();
   const { toast } = useToast();
+  const [clearedDecisions, clearDecisions] = useClearedSet(`mj_cleared_decisions_${user.id}`);
+  const [clearedActivity, clearActivity] = useClearedSet(`mj_cleared_activity_${user.id}`);
 
   const inbox = requests.filter((r) => r.approverId === user.id && r.status === "Pending");
-  const history = requests.filter((r) => r.approverId === user.id && r.status !== "Pending");
+  const history = requests.filter((r) => r.approverId === user.id && r.status !== "Pending" && !clearedDecisions.has(r.id));
+  const activity = requests.filter((r) => !clearedActivity.has(r.id));
   const mine = requests.filter((r) => r.requesterId === user.id);
 
   const [open, setOpen] = useState(false);
@@ -147,7 +172,7 @@ export function ApprovalsView() {
       {/* Decision history — requests you decided */}
       {(role === "lead" || role === "hr" || role === "management") && (
         <Card>
-          <CardHeader title="Decision history" subtitle="Requests you've approved or declined" icon={<ClipboardList className="h-5 w-5" />} action={<Badge tone="navy">{history.length}</Badge>} />
+          <CardHeader title="Decision history" subtitle="Requests you've approved or declined" icon={<ClipboardList className="h-5 w-5" />} action={<div className="flex items-center gap-2">{history.length > 0 && <button onClick={() => clearDecisions(history.map((r) => r.id))} className="flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2.5 py-1 text-[11px] font-semibold text-navy/60 transition-colors hover:text-rose-600"><Trash2 className="h-3 w-3" /> Clear</button>}<Badge tone="navy">{history.length}</Badge></div>} />
           {history.length === 0 ? (
             <p className="py-8 text-center text-sm text-slate-400">No decisions yet — approved & declined requests will appear here.</p>
           ) : (
@@ -198,12 +223,12 @@ export function ApprovalsView() {
       {/* Management oversight */}
       {role === "management" && (
         <Card>
-          <CardHeader title="All activity" subtitle="Read-only oversight — leads & HR own their own approvals" icon={<ClipboardList className="h-5 w-5" />} />
+          <CardHeader title="All activity" subtitle="Read-only oversight — leads & HR own their own approvals" icon={<ClipboardList className="h-5 w-5" />} action={activity.length > 0 ? <button onClick={() => clearActivity(activity.map((r) => r.id))} className="flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2.5 py-1 text-[11px] font-semibold text-navy/60 transition-colors hover:text-rose-600"><Trash2 className="h-3 w-3" /> Clear</button> : undefined} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-sm">
               <thead><tr className="border-b border-navy/5 text-xs uppercase tracking-wider text-slate-400"><th className="pb-3 font-semibold">Request</th><th className="pb-3 font-semibold">Requester</th><th className="pb-3 font-semibold">Approver</th><th className="pb-3 text-right font-semibold">Status</th></tr></thead>
               <tbody>
-                {requests.map((r) => (
+                {activity.map((r) => (
                   <tr key={r.id} className="border-b border-navy/[0.04] last:border-0">
                     <td className="py-3"><p className="font-medium text-navy">{r.title}</p><p className="text-xs text-slate-400">{r.type}</p></td>
                     <td className="py-3 text-slate-500">{personById(r.requesterId)?.name}</td>

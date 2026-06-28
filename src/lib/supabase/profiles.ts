@@ -19,6 +19,7 @@ function fromRow(r: any): Person {
     attendance: r.attendance ?? undefined,
     internStart: r.intern_start ?? undefined,
     internEnd: r.intern_end ?? undefined,
+    avatarUrl: r.avatar_url ?? undefined,
     joined: (r.created_at ?? "").slice(0, 10),
   };
 }
@@ -36,6 +37,8 @@ export interface ProfilePatch {
   managerId?: string | null;
   title?: string | null;
   name?: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
   internStart?: string | null;
   internEnd?: string | null;
 }
@@ -56,6 +59,8 @@ export async function updateProfile(id: string, patch: ProfilePatch) {
   if (patch.managerId !== undefined) row.manager_id = patch.managerId;
   if (patch.title !== undefined) row.title = patch.title;
   if (patch.name !== undefined) row.name = patch.name;
+  if (patch.phone !== undefined) row.phone = patch.phone;
+  if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl;
   if (patch.internStart !== undefined) row.intern_start = patch.internStart;
   if (patch.internEnd !== undefined) row.intern_end = patch.internEnd;
   const { error } = await createClient().from("profiles").update(row).eq("id", id);
@@ -78,6 +83,7 @@ export async function createProfile(p: Person) {
     attendance: p.attendance ?? null,
     intern_start: p.internStart || null,
     intern_end: p.internEnd || null,
+    avatar_url: p.avatarUrl || null,
   };
   const { error } = await createClient().from("profiles").insert(row);
   if (error) throw error;

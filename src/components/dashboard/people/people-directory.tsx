@@ -20,6 +20,7 @@ import {
 import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/shared/avatar";
 import { Reveal } from "@/components/shared/reveal";
 import { ScoreBar } from "@/components/shared/charts";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
@@ -175,7 +176,7 @@ export function PeopleDirectory() {
           <div className="max-h-[520px] space-y-1.5 overflow-y-auto pr-1">
             {directory.map((p) => (
               <button key={p.id} onClick={() => setSelId(p.id)} className={cn("flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition-all", p.id === sel?.id ? "border-mjblue/30 bg-mjblue-50/60" : "border-transparent hover:bg-navy/[0.03]")}>
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(p.name)}</div>
+                <Avatar name={p.name} url={p.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-navy">{p.name}</p><p className="truncate text-[11px] text-slate-500">{p.title}</p></div>
                 <Badge tone={roleTone[p.role]}>{ROLE_META[p.role].short}</Badge>
               </button>
@@ -195,7 +196,12 @@ export function PeopleDirectory() {
               <Card>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-brand text-xl font-bold text-white">{initials(sel.name)}</div>
+                    {sel.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sel.avatarUrl} alt={sel.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-brand text-xl font-bold text-white">{initials(sel.name)}</div>
+                    )}
                     <div>
                       <h3 className="text-xl font-bold text-navy">{sel.name}</h3>
                       <p className="text-sm text-slate-500">{sel.title}{sel.team ? ` · ${sel.team}` : ""}</p>
@@ -332,7 +338,7 @@ export function PeopleDirectory() {
           <div className="grid gap-3 sm:grid-cols-2">
             {team.map((r) => (
               <button key={r.id} onClick={() => setSelId(r.id)} className="flex items-center gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-card">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-[11px] font-bold text-white">{initials(r.name)}</div>
+                <Avatar name={r.name} url={r.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-navy">{r.name}</p><p className="truncate text-xs text-slate-500">{r.title}</p></div>
                 <span className="text-sm font-bold text-navy">{r.performance ?? "—"}</span>
               </button>

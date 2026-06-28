@@ -17,8 +17,10 @@ import {
   Award,
   Repeat,
   ChevronDown,
+  Settings,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
+import { Avatar } from "@/components/shared/avatar";
 import { roleNav } from "@/components/app/roles";
 import { useAuth } from "@/components/app/auth";
 import { AiAssistant } from "@/components/dashboard/ai-assistant";
@@ -104,9 +106,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="relative border-t border-white/10 p-3">
         <div className="flex items-center gap-3 rounded-2xl bg-white/[0.04] p-3">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">
-            {initials(user.name)}
-          </div>
+          <Avatar name={user.name} url={user.avatarUrl} className="h-9 w-9" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-white">{user.name}</p>
             <p className="truncate text-[11px] text-white/50">{user.title}</p>
@@ -137,6 +137,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [query, setQuery] = useState("");
   const [unread, setUnread] = useState(true);
+  const [notes, setNotes] = useState(notifications);
   const ref = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -234,20 +235,31 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-2xl border border-navy/5 bg-white shadow-[0_20px_50px_-16px_rgba(5,11,61,0.35)]">
                   <div className="flex items-center justify-between border-b border-navy/5 px-4 py-3">
                     <p className="text-sm font-semibold text-navy">Notifications</p>
-                    <button onClick={() => { setUnread(false); toast({ title: "All caught up", description: "Marked all as read.", type: "success" }); }} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
-                      <CheckCheck className="h-3.5 w-3.5" /> Mark all read
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {notes.length > 0 && (
+                        <button onClick={() => { setNotes([]); setUnread(false); toast({ title: "Notifications cleared", type: "success" }); }} className="text-xs font-semibold text-slate-400 transition-colors hover:text-rose-600">
+                          Clear all
+                        </button>
+                      )}
+                      <button onClick={() => { setUnread(false); toast({ title: "All caught up", description: "Marked all as read.", type: "success" }); }} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
+                        <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+                      </button>
+                    </div>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((n) => {
-                      const Icon = n.icon;
-                      return (
-                        <div key={n.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-offwhite/60">
-                          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${n.tone}`}><Icon className="h-4 w-4" /></span>
-                          <div className="min-w-0"><p className="text-sm leading-snug text-navy">{n.text}</p><p className="mt-0.5 text-xs text-slate-400">{n.time}</p></div>
-                        </div>
-                      );
-                    })}
+                    {notes.length === 0 ? (
+                      <p className="px-4 py-10 text-center text-sm text-slate-400">You&apos;re all caught up ✨</p>
+                    ) : (
+                      notes.map((n) => {
+                        const Icon = n.icon;
+                        return (
+                          <div key={n.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-offwhite/60">
+                            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${n.tone}`}><Icon className="h-4 w-4" /></span>
+                            <div className="min-w-0"><p className="text-sm leading-snug text-navy">{n.text}</p><p className="mt-0.5 text-xs text-slate-400">{n.time}</p></div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -257,7 +269,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           {/* User menu + role switch */}
           <div className="relative">
             <button onClick={() => setPanel(panel === "user" ? null : "user")} className="ml-1 flex items-center gap-2.5 rounded-full border border-navy/8 bg-white py-1 pl-1 pr-2.5 transition-colors hover:border-mjblue/30">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(user.name)}</div>
+              <Avatar name={user.name} url={user.avatarUrl} className="h-8 w-8" />
               <div className="hidden leading-tight sm:block">
                 <p className="text-left text-xs font-semibold text-navy">{user.name.split(" ")[0]}</p>
                 <p className="text-left text-[10px] text-slate-500">{ROLE_META[role].label}</p>
@@ -267,11 +279,17 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
             <AnimatePresence>
               {panel === "user" && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-navy/5 bg-white shadow-[0_20px_50px_-16px_rgba(5,11,61,0.35)]">
-                  <div className="border-b border-navy/5 p-3">
-                    <p className="text-sm font-semibold text-navy">{user.name}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
+                  <div className="flex items-center gap-3 border-b border-navy/5 p-3">
+                    <Avatar name={user.name} url={user.avatarUrl} className="h-10 w-10" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-navy">{user.name}</p>
+                      <p className="truncate text-xs text-slate-500">{user.email}</p>
+                    </div>
                   </div>
                   <div className="p-1.5">
+                    <Link href="/dashboard/profile" onClick={() => setPanel(null)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-navy/70 transition-colors hover:bg-navy/5">
+                      <Settings className="h-4 w-4" /> Profile settings
+                    </Link>
                     {!live && (
                       <>
                         <p className="flex items-center gap-1.5 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">

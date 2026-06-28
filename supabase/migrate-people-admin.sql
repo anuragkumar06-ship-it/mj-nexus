@@ -11,3 +11,6 @@ alter table public.profiles drop constraint if exists profiles_id_fkey;
 -- Internship duration
 alter table public.profiles add column if not exists intern_start text;
 alter table public.profiles add column if not exists intern_end text;
+
+-- Profile picture
+alter table public.profiles add column if not exists avatar_url text;
