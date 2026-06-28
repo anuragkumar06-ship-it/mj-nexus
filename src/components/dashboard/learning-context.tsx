@@ -12,6 +12,7 @@ interface LearningCtx {
   categories: string[];
   addResource: (r: LearningResource) => void;
   removeResource: (id: string) => void;
+  approveResource: (id: string) => void;
   setProgress: (resourceId: string, progress: number) => void;
   live: boolean;
 }
@@ -70,6 +71,10 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     setResources((prev) => prev.filter((r) => r.id !== id));
     if (live) import("@/lib/supabase/learning-data").then((m) => m.deleteResource(id)).catch(() => {});
   };
+  const approveResource = (id: string) => {
+    setResources((prev) => prev.map((r) => (r.id === id ? { ...r, status: "approved" } : r)));
+    if (live) import("@/lib/supabase/learning-data").then((m) => m.setResourceStatus(id, "approved")).catch(() => {});
+  };
   const setProgress = (resourceId: string, p: number) => {
     setProgressMap((prev) => ({ ...prev, [resourceId]: p }));
     if (live && user?.id) import("@/lib/supabase/learning-data").then((m) => m.upsertProgress(user.id, resourceId, p)).catch(() => {});
@@ -78,7 +83,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
   const items: LearningItem[] = resources.map((r) => ({ ...r, progress: progress[r.id] ?? 0 }));
   const categories = Array.from(new Set(resources.map((r) => r.category))).sort();
 
-  return <Ctx.Provider value={{ items, categories, addResource, removeResource, setProgress, live }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ items, categories, addResource, removeResource, approveResource, setProgress, live }}>{children}</Ctx.Provider>;
 }
 
 export function useLearning() {

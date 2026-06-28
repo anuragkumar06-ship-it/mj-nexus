@@ -10,6 +10,7 @@ export interface LearningResource {
   category: string;
   folder?: string;
   level: LearningLevel;
+  status?: "pending" | "approved";
   createdAt?: string;
 }
 

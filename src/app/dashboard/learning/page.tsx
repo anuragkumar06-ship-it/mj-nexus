@@ -39,10 +39,13 @@ const textareaClass =
   "w-full rounded-xl border border-navy/10 bg-white px-3.5 py-2.5 text-sm text-navy outline-none transition-all placeholder:text-slate-400 focus:border-mjblue/50 focus:ring-4 focus:ring-mjblue/10";
 
 function LearningHub() {
-  const { items, categories, addResource, removeResource, setProgress } = useLearning();
+  const { items, categories, addResource, removeResource, approveResource, setProgress } = useLearning();
   const { role } = useAuth();
   const { toast } = useToast();
-  const canManage = role === "management" || role === "lead";
+  const canManage = role === "management" || role === "lead" || role === "hr";
+  const isApprover = role === "management";
+  const visibleItems = items.filter((i) => i.status !== "pending");
+  const pendingItems = items.filter((i) => i.status === "pending");
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
@@ -59,18 +62,18 @@ function LearningHub() {
     level: "Beginner",
   });
 
-  const folders = Array.from(new Set(items.map((i) => i.folder).filter(Boolean))) as string[];
+  const folders = Array.from(new Set(visibleItems.map((i) => i.folder).filter(Boolean))) as string[];
 
-  const filtered = items.filter(
+  const filtered = visibleItems.filter(
     (it) =>
       (cat === "All" || it.category === cat) &&
       (folderFilter === "All" || it.folder === folderFilter) &&
       (!q.trim() || `${it.title} ${it.description} ${it.category} ${it.folder ?? ""}`.toLowerCase().includes(q.toLowerCase()))
   );
 
-  const completed = items.filter((i) => i.progress >= 100).length;
-  const inProgress = items.filter((i) => i.progress > 0 && i.progress < 100).length;
-  const avg = items.length ? Math.round(items.reduce((s, i) => s + i.progress, 0) / items.length) : 0;
+  const completed = visibleItems.filter((i) => i.progress >= 100).length;
+  const inProgress = visibleItems.filter((i) => i.progress > 0 && i.progress < 100).length;
+  const avg = visibleItems.length ? Math.round(visibleItems.reduce((s, i) => s + i.progress, 0) / visibleItems.length) : 0;
 
   const doAdd = () => {
     if (!f.title.trim()) {
@@ -87,8 +90,9 @@ function LearningHub() {
       category: f.category.trim() || "General",
       folder: f.folder.trim() || undefined,
       level: f.level,
+      status: isApprover ? "approved" : "pending",
     });
-    toast({ title: "Resource added", description: `${f.title.trim()} is now in the Learning Hub.`, type: "success" });
+    toast(isApprover ? { title: "Resource added", description: `${f.title.trim()} is now in the Learning Hub.`, type: "success" } : { title: "Sent for approval", description: "Management will review and publish it.", type: "success" });
     setF({ title: "", description: "", type: "Video", url: "", category: "", folder: "", level: "Beginner" });
     setAddOpen(false);
   };
@@ -115,7 +119,7 @@ function LearningHub() {
   };
 
   const stats = [
-    { label: "Materials", value: items.length, icon: BookOpen },
+    { label: "Materials", value: visibleItems.length, icon: BookOpen },
     { label: "Completed", value: completed, icon: Trophy },
     { label: "In progress", value: inProgress, icon: Loader2 },
     { label: "My progress", value: `${avg}%`, icon: PlayCircle },
@@ -178,7 +182,31 @@ function LearningHub() {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {canManage && pendingItems.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader title="Pending approval" subtitle={isApprover ? "Materials added by team leads / HR — approve to publish" : "Awaiting management approval"} icon={<Loader2 className="h-5 w-5" />} action={<Badge tone="amber">{pendingItems.length}</Badge>} />
+          <div className="space-y-2.5">
+            {pendingItems.map((it) => (
+              <div key={it.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-navy">{it.title}</p>
+                  <p className="truncate text-xs text-slate-500">{it.type} · {it.category}{it.folder ? ` · ${it.folder}` : ""}</p>
+                </div>
+                {isApprover ? (
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => { removeResource(it.id); toast({ title: "Rejected", description: it.title, type: "info" }); }} className="rounded-xl border border-navy/10 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50">Reject</button>
+                    <button onClick={() => { approveResource(it.id); burstConfetti(); toast({ title: "Published", description: `${it.title} is now visible to everyone.`, type: "success" }); }} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-white"><CheckCircle2 className="h-3.5 w-3.5" /> Approve</button>
+                  </div>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600">Awaiting approval</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {visibleItems.length === 0 ? (
         <Card>
           <div className="py-16 text-center">
             <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-mjblue-50 text-mjblue"><GraduationCap className="h-7 w-7" /></div>

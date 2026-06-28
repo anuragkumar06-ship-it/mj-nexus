@@ -20,6 +20,7 @@ create table if not exists public.learning_resources (
 
 -- Folder column (safe to re-run on an existing table)
 alter table public.learning_resources add column if not exists folder text;
+alter table public.learning_resources add column if not exists status text default 'approved';
 
 create table if not exists public.learning_progress (
   id text primary key,            -- `${user_id}_${resource_id}`

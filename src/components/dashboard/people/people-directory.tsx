@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -43,7 +43,7 @@ const ROLE_OPTIONS: Role[] = ["intern", "lead", "hr", "management"];
 
 export function PeopleDirectory() {
   const { tasks, feedback, requests } = useApp();
-  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, isAuthorized, updatePerson, addPerson, removePerson, authorizeEmail } = usePeople();
+  const { people, loading, internsAll, leadsAll, hrAll, reportsOf, personById, isAuthorized, updatePerson, addPerson, removePerson, authorizeEmail, live } = usePeople();
   const { user } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<Role | "all">("all");
@@ -51,6 +51,26 @@ export function PeopleDirectory() {
   const [selId, setSelId] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [nf, setNf] = useState<{ name: string; email: string; role: Role; team: string; start: string; end: string }>({ name: "", email: "", role: "intern", team: "", start: "", end: "" });
+  const [customRoles, setCustomRoles] = useState<{ name: string; base: Role }[]>([]);
+  const [rolesOpen, setRolesOpen] = useState(false);
+  const [rn, setRn] = useState("");
+  const [rb, setRb] = useState<Role>("intern");
+
+  useEffect(() => {
+    if (!live) return;
+    (async () => {
+      try {
+        const { loadSetting } = await import("@/lib/supabase/attendance-data");
+        const raw = await loadSetting("custom_roles");
+        if (raw) setCustomRoles(JSON.parse(raw));
+      } catch {}
+    })();
+  }, [live]);
+
+  const saveRoles = (list: { name: string; base: Role }[]) => {
+    setCustomRoles(list);
+    if (live) import("@/lib/supabase/attendance-data").then((m) => m.saveSetting("custom_roles", JSON.stringify(list))).catch(() => {});
+  };
 
   const directory = people.filter(
     (p) => (tab === "all" ? p.role !== "management" : p.role === tab) && p.name.toLowerCase().includes(query.toLowerCase()) && isAuthorized(p)
@@ -74,6 +94,19 @@ export function PeopleDirectory() {
     updatePerson(id, { role });
     toast({ title: "Role updated", description: `Set to ${ROLE_META[role].label}.`, type: "success" });
   };
+  const applyRole = (id: string, value: string) => {
+    if (value.startsWith("custom:")) {
+      const name = value.slice(7);
+      const cr = customRoles.find((c) => c.name === name);
+      if (cr) {
+        updatePerson(id, { role: cr.base, title: cr.name });
+        toast({ title: "Role updated", description: `Set to ${cr.name}.`, type: "success" });
+      }
+    } else {
+      setRole(id, value as Role);
+    }
+  };
+  const roleValueOf = (p: { role: Role; title: string }) => (customRoles.find((c) => c.name === p.title) ? `custom:${p.title}` : p.role);
   const setManager = (id: string, managerId: string) => {
     updatePerson(id, { managerId: managerId || undefined });
     toast({ title: "Manager updated", type: "success" });
@@ -123,8 +156,36 @@ export function PeopleDirectory() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Organization directory</p>
-        <Button size="sm" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add person</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setRolesOpen(true)}><ShieldCheck className="h-4 w-4" /> Roles</Button>
+          <Button size="sm" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add person</Button>
+        </div>
       </div>
+
+      <Modal open={rolesOpen} onClose={() => setRolesOpen(false)} title="Custom roles" description="Create roles for your organization. Each maps to an access level." icon={<ShieldCheck className="h-5 w-5" />} footer={<Button variant="ghost" size="sm" onClick={() => setRolesOpen(false)}>Done</Button>}>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {customRoles.length === 0 ? (
+              <p className="py-2 text-center text-sm text-slate-400">No custom roles yet — add one below.</p>
+            ) : (
+              customRoles.map((c) => (
+                <div key={c.name} className="flex items-center justify-between rounded-xl border border-navy/5 bg-offwhite/60 p-2.5">
+                  <div><p className="text-sm font-medium text-navy">{c.name}</p><p className="text-xs text-slate-400">Access: {ROLE_META[c.base].label}</p></div>
+                  <button onClick={() => saveRoles(customRoles.filter((x) => x.name !== c.name))} className="grid h-7 w-7 place-items-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50" aria-label="Remove role"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="grid grid-cols-[1fr_auto] gap-2 border-t border-navy/5 pt-3">
+            <input value={rn} onChange={(e) => setRn(e.target.value)} placeholder="Role name (e.g. Designer)" className={fieldClass} />
+            <select value={rb} onChange={(e) => setRb(e.target.value as Role)} className={fieldClass}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_META[r].label} access</option>)}</select>
+          </div>
+          <Button size="sm" onClick={() => { const name = rn.trim(); if (!name) { toast({ title: "Enter a role name", type: "error" }); return; } if (customRoles.some((c) => c.name === name)) { toast({ title: "That role already exists", type: "error" }); return; } saveRoles([...customRoles, { name, base: rb }]); setRn(""); toast({ title: "Role added", description: `${name} · ${ROLE_META[rb].label} access`, type: "success" }); }}>
+            <Plus className="h-4 w-4" /> Add role
+          </Button>
+          <p className="text-[11px] text-slate-400">A custom role is a designation with the chosen access level. Assign it in a person&apos;s &ldquo;Manage access&rdquo;.</p>
+        </div>
+      </Modal>
 
       <Modal
         open={addOpen}
@@ -251,8 +312,9 @@ export function PeopleDirectory() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>
                     <label className={labelClass}>Role</label>
-                    <select value={sel.role} onChange={(e) => setRole(sel.id, e.target.value as Role)} className={fieldClass}>
-                      {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
+                    <select value={roleValueOf(sel)} onChange={(e) => applyRole(sel.id, e.target.value)} className={fieldClass}>
+                      <optgroup label="Access level">{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}</optgroup>
+                      {customRoles.length > 0 && <optgroup label="Custom roles">{customRoles.map((c) => <option key={c.name} value={`custom:${c.name}`}>{c.name}</option>)}</optgroup>}
                     </select>
                   </div>
                   <div>
