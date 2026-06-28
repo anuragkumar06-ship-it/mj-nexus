@@ -74,12 +74,11 @@ export function AddCandidateButton() {
         reset();
         setOpen(false);
       })
-      .catch(() => {
-        toast({
-          title: "Couldn't save candidate",
-          description: "Run supabase/migrate-recruitment.sql once in Supabase, then try again.",
-          type: "error",
-        });
+      .catch((err: { message?: string; hint?: string; code?: string }) => {
+        const detail = err?.message
+          ? `${err.message}${err.hint ? " — " + err.hint : ""}`
+          : "Run supabase/migrate-recruitment.sql in Supabase, then try again.";
+        toast({ title: "Couldn't save candidate", description: detail, type: "error" });
       });
   };
 

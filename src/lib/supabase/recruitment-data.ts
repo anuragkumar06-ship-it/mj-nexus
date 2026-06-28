@@ -44,8 +44,26 @@ export async function loadInterviews(): Promise<Interview[]> {
   return (data ?? []).map(ivFromRow);
 }
 export async function insertCandidate(c: Candidate) {
-  const { error } = await createClient().from("candidates").insert(candToRow(c));
-  if (error) throw error;
+  const sb = createClient();
+  const { error } = await sb.from("candidates").insert(candToRow(c));
+  if (!error) return;
+  // Fallback: the DB may not have the newer resume/duration columns yet.
+  // Retry with only the original core columns so the candidate still saves.
+  const core = {
+    id: c.id,
+    name: c.name,
+    role: c.role,
+    college: c.college,
+    state: c.state,
+    source: c.source,
+    stage: c.stage,
+    fit_score: c.fitScore,
+    experience: c.experience,
+    skills: c.skills,
+    email: c.email,
+  };
+  const { error: e2 } = await sb.from("candidates").insert(core);
+  if (e2) throw e2;
 }
 export async function deleteCandidate(id: string) {
   const { error } = await createClient().from("candidates").delete().eq("id", id);
