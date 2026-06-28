@@ -59,6 +59,8 @@ export interface ApprovalRequest {
   fromDate?: string;
   toDate?: string;
   reason?: string;
+  leaveType?: string;
+  grantedType?: string;
 }
 export interface Feedback {
   id: string;
@@ -121,6 +123,8 @@ interface AppCtx {
   addStandup: (s: Omit<Standup, "id">) => void;
   createRequest: (r: Omit<ApprovalRequest, "id" | "status" | "createdAt">) => void;
   decideRequest: (id: string, decision: "Approved" | "Rejected", note?: string) => void;
+  updateRequest: (id: string, patch: Partial<ApprovalRequest>) => void;
+  deleteRequest: (id: string) => void;
   addFeedback: (f: Omit<Feedback, "id" | "date">) => void;
 }
 
@@ -220,6 +224,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   };
   const dbInsert = async (e: any, o: any) => write(async () => (await import("@/lib/supabase/data")).dbInsert(e, o));
   const dbUpdate = async (e: any, id: string, p: any) => write(async () => (await import("@/lib/supabase/data")).dbUpdate(e, id, p));
+  const dbDelete = async (e: any, id: string) => write(async () => (await import("@/lib/supabase/data")).dbDelete(e, id));
   const pushNotif = (userId: string | undefined, text: string, type: string, href: string) => {
     if (live && userId) import("@/lib/supabase/notifications-data").then((m) => m.notify(userId, text, { type, href })).catch(() => {});
   };
@@ -271,6 +276,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     dbUpdate("requests", id, { status: decision, decisionNote: note });
     pushNotif(req?.requesterId, `Your request "${req?.title ?? ""}" was ${decision.toLowerCase()}`, decision === "Approved" ? "success" : "info", "/dashboard/approvals");
   };
+  const updateRequest: AppCtx["updateRequest"] = (id, patch) => {
+    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    dbUpdate("requests", id, patch);
+  };
+  const deleteRequest: AppCtx["deleteRequest"] = (id) => {
+    setRequests((prev) => prev.filter((r) => r.id !== id));
+    dbDelete("requests", id);
+  };
   const addFeedback: AppCtx["addFeedback"] = (f) => {
     const row: Feedback = { ...f, id: `f${Date.now()}`, date: "Just now" };
     setFeedback((prev) => [row, ...prev]);
@@ -279,7 +292,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ tasks, submissions, standups, requests, feedback, live, assignTask, setTaskStatus, submitTask, reviewSubmission, addStandup, createRequest, decideRequest, addFeedback }}
+      value={{ tasks, submissions, standups, requests, feedback, live, assignTask, setTaskStatus, submitTask, reviewSubmission, addStandup, createRequest, decideRequest, updateRequest, deleteRequest, addFeedback }}
     >
       {children}
     </Ctx.Provider>

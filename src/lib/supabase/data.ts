@@ -17,7 +17,7 @@ const COLS: Record<Entity, Record<string, string>> = {
   tasks: { title: "title", description: "description", assigneeId: "assignee_id", assignerId: "assigner_id", team: "team", status: "status", priority: "priority", due: "due", tag: "tag", submissionId: "submission_id" },
   submissions: { taskId: "task_id", internId: "intern_id", note: "note", files: "files", status: "status", reviewNote: "review_note", submittedAt: "submitted_at" },
   standups: { internId: "intern_id", completed: "completed", priorities: "priorities", challenges: "challenges", date: "date" },
-  requests: { type: "type", title: "title", detail: "detail", requesterId: "requester_id", approverId: "approver_id", status: "status", files: "files", decisionNote: "decision_note", createdAt: "created_at_label", fromDate: "from_date", toDate: "to_date", reason: "reason" },
+  requests: { type: "type", title: "title", detail: "detail", requesterId: "requester_id", approverId: "approver_id", status: "status", files: "files", decisionNote: "decision_note", createdAt: "created_at_label", fromDate: "from_date", toDate: "to_date", reason: "reason", leaveType: "leave_type", grantedType: "granted_type" },
   feedback: { internId: "intern_id", fromId: "from_id", rating: "rating", note: "note", date: "date" },
 };
 
@@ -70,6 +70,11 @@ export async function dbInsert(entity: Entity, obj: Record<string, any>) {
 
 export async function dbUpdate(entity: Entity, id: string, patch: Record<string, any>) {
   const { error } = await createClient().from(entity).update(toRow(entity, patch)).eq("id", id);
+  if (error) throw error;
+}
+
+export async function dbDelete(entity: Entity, id: string) {
+  const { error } = await createClient().from(entity).delete().eq("id", id);
   if (error) throw error;
 }
 
