@@ -22,9 +22,27 @@ export async function GET() {
     }
   };
 
+  // Probe an anon insert (then clean up) to see if RLS requires an authenticated session.
+  let anonInsert: { status: number; body: string } = { status: 0, body: "" };
+  const probeId = `diag-${Date.now()}`;
+  try {
+    const r = await fetch(`${url}/rest/v1/candidates`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ id: probeId, name: "diag probe", role: "Marketing", stage: "Applied" }),
+    });
+    anonInsert = { status: r.status, body: (await r.text()).slice(0, 300) };
+    if (r.status < 300) {
+      await fetch(`${url}/rest/v1/candidates?id=eq.${probeId}`, { method: "DELETE", headers });
+    }
+  } catch (e) {
+    anonInsert = { status: 0, body: String(e) };
+  }
+
   return NextResponse.json({
     configured: true,
     tableCore: await probe("id,name,stage"),
     newColumns: await probe("resume_url,resume_name,intern_start,intern_end"),
+    anonInsert,
   });
 }
