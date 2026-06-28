@@ -137,7 +137,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [query, setQuery] = useState("");
   const [unread, setUnread] = useState(true);
-  const [notes, setNotes] = useState(notifications);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const ref = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -159,6 +159,34 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // Persisted (per-user) notification state so clearing/reading sticks across logins.
+  useEffect(() => {
+    try {
+      const d = localStorage.getItem(`mj_notif_dismissed_${user.id}`);
+      if (d) setDismissed(new Set(JSON.parse(d)));
+      if (localStorage.getItem(`mj_notif_read_${user.id}`) === "1") setUnread(false);
+    } catch {}
+  }, [user.id]);
+
+  const notes = notifications.filter((n) => !dismissed.has(String(n.id)));
+  const clearNotes = () => {
+    const all = new Set(notifications.map((n) => String(n.id)));
+    setDismissed(all);
+    setUnread(false);
+    try {
+      localStorage.setItem(`mj_notif_dismissed_${user.id}`, JSON.stringify([...all]));
+      localStorage.setItem(`mj_notif_read_${user.id}`, "1");
+    } catch {}
+    toast({ title: "Notifications cleared", type: "success" });
+  };
+  const markNotesRead = () => {
+    setUnread(false);
+    try {
+      localStorage.setItem(`mj_notif_read_${user.id}`, "1");
+    } catch {}
+    toast({ title: "All caught up", description: "Marked all as read.", type: "success" });
+  };
 
   const personTarget = role === "management" ? "/dashboard/people" : role === "lead" ? "/dashboard/team" : "/dashboard/performance";
   const results = query.trim()
@@ -228,7 +256,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           <div className="relative">
             <button onClick={() => setPanel(panel === "bell" ? null : "bell")} className="relative grid h-10 w-10 place-items-center rounded-xl text-navy/70 transition-colors hover:bg-navy/5" aria-label="Notifications">
               <Bell className="h-5 w-5" />
-              {unread && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-mjblue ring-2 ring-offwhite" />}
+              {unread && notes.length > 0 && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-mjblue ring-2 ring-offwhite" />}
             </button>
             <AnimatePresence>
               {panel === "bell" && (
@@ -237,11 +265,11 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
                     <p className="text-sm font-semibold text-navy">Notifications</p>
                     <div className="flex items-center gap-3">
                       {notes.length > 0 && (
-                        <button onClick={() => { setNotes([]); setUnread(false); toast({ title: "Notifications cleared", type: "success" }); }} className="text-xs font-semibold text-slate-400 transition-colors hover:text-rose-600">
+                        <button onClick={clearNotes} className="text-xs font-semibold text-slate-400 transition-colors hover:text-rose-600">
                           Clear all
                         </button>
                       )}
-                      <button onClick={() => { setUnread(false); toast({ title: "All caught up", description: "Marked all as read.", type: "success" }); }} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
+                      <button onClick={markNotesRead} className="flex items-center gap-1 text-xs font-semibold text-mjblue hover:underline">
                         <CheckCheck className="h-3.5 w-3.5" /> Mark all read
                       </button>
                     </div>
