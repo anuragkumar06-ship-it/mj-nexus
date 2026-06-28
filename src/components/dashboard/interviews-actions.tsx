@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { useInterviews } from "@/components/dashboard/interviews-context";
-import { candidates, type Interview } from "@/lib/data";
+import { useRecruitment } from "@/components/dashboard/recruitment-context";
+import { type Interview } from "@/lib/data";
 
 const interviewers = ["Neha Kapoor", "Rahul Saxena", "Priya Menon"];
 const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 
 export function ScheduleInterviewButton() {
   const { addInterview } = useInterviews();
+  const { candidates } = useRecruitment();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [candidate, setCandidate] = useState(candidates[0].name);
+  const [candidate, setCandidate] = useState("");
   const [interviewer, setInterviewer] = useState(interviewers[0]);
   const [date, setDate] = useState(tomorrow);
   const [time, setTime] = useState("10:30 AM");
@@ -23,10 +25,15 @@ export function ScheduleInterviewButton() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const role = candidates.find((c) => c.name === candidate)?.role ?? "Marketing";
+    const name = candidate || candidates[0]?.name || "";
+    if (!name) {
+      toast({ title: "Add a candidate first", description: "Create a candidate in Recruitment, then schedule.", type: "error" });
+      return;
+    }
+    const role = candidates.find((c) => c.name === name)?.role ?? "Marketing";
     addInterview({
       id: `i${Date.now()}`,
-      candidate,
+      candidate: name,
       role,
       date,
       time,
@@ -36,7 +43,7 @@ export function ScheduleInterviewButton() {
     });
     toast({
       title: "Interview scheduled",
-      description: `${candidate} with ${interviewer} on ${date.slice(5)} at ${time}.`,
+      description: `${name} with ${interviewer} on ${date.slice(5)} at ${time}.`,
       type: "success",
     });
     setOpen(false);
@@ -67,11 +74,15 @@ export function ScheduleInterviewButton() {
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className={labelClass}>Candidate</label>
-            <select value={candidate} onChange={(e) => setCandidate(e.target.value)} className={fieldClass}>
-              {candidates.map((c) => (
-                <option key={c.id}>{c.name}</option>
-              ))}
-            </select>
+            {candidates.length ? (
+              <select value={candidate || candidates[0]?.name || ""} onChange={(e) => setCandidate(e.target.value)} className={fieldClass}>
+                {candidates.map((c) => (
+                  <option key={c.id}>{c.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input value={candidate} onChange={(e) => setCandidate(e.target.value)} placeholder="Candidate name" className={fieldClass} />
+            )}
           </div>
           <div>
             <label className={labelClass}>Interviewer</label>

@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Gauge, ThumbsUp, MessageSquare } from "lucide-react";
 import { ProgressRing } from "@/components/shared/progress-ring";
 import { ScoreBar } from "@/components/shared/charts";
-import { interviews, initials, type Interview } from "@/lib/data";
+import { initials, type Interview } from "@/lib/data";
+import { useInterviews } from "@/components/dashboard/interviews-context";
 import { cn, clamp } from "@/lib/utils";
 
 const metricLabels = [
@@ -35,9 +36,23 @@ function assess(iv: Interview) {
 }
 
 export function InterviewAssessment() {
-  const assessable = interviews.filter((i) => i.score !== undefined);
-  const [id, setId] = useState(assessable[0].id);
-  const selected = assessable.find((i) => i.id === id)!;
+  const { interviews } = useInterviews();
+  const assessable = interviews.filter((i) => typeof i.score === "number");
+  const [id, setId] = useState<string>("");
+  const selected = assessable.find((i) => i.id === id) ?? assessable[0];
+  if (!selected)
+    return (
+      <div className="rounded-3xl border border-navy/5 bg-white p-6 shadow-card">
+        <div className="mb-2 flex items-center gap-2">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-mjblue-50 text-mjblue"><Sparkles className="h-5 w-5" /></div>
+          <div>
+            <h3 className="text-base font-semibold text-navy">AI Interview Assessment</h3>
+            <p className="text-sm text-slate-500">Transcript analysis &amp; role-fit scoring</p>
+          </div>
+        </div>
+        <p className="py-8 text-center text-sm text-slate-400">No completed interviews to assess yet. Schedule one, then mark it completed with a score.</p>
+      </div>
+    );
   const a = assess(selected);
 
   return (

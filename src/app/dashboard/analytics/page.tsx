@@ -1,237 +1,145 @@
-import {
-  Users,
-  UserCheck,
-  Percent,
-  Gauge,
-  LineChart as LineIcon,
-  Filter,
-  Radar as RadarIcon,
-  MapPin,
-  GraduationCap,
-  Building2,
-} from "lucide-react";
+"use client";
+
+import { Users, UserCheck, Percent, Gauge, Filter, MapPin, GraduationCap, BarChart3 } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
-import { AnalyticsActions } from "@/components/dashboard/analytics-actions";
-import { RoleGate } from "@/components/app/role-gate";
 import { Reveal } from "@/components/shared/reveal";
 import { ScoreBar } from "@/components/shared/charts";
-import { LineTrend, BarGroup, RadarCompare } from "@/components/dashboard/charts";
-import {
-  monthlyHiring,
-  recruitmentFunnel,
-  conversionRates,
-  sourceEffectiveness,
-  geoAnalytics,
-  collegeAnalytics,
-  departmentAnalytics,
-  departmentRadar,
-  ROLE_COLORS,
-  type Role,
-} from "@/lib/data";
+import { BarGroup } from "@/components/dashboard/charts";
+import { RoleGate } from "@/components/app/role-gate";
+import { AnalyticsActions } from "@/components/dashboard/analytics-actions";
+import { useRecruitment } from "@/components/dashboard/recruitment-context";
+import { ROLE_COLORS } from "@/lib/data";
 
-const kpis = [
-  { label: "Total Applicants", value: 1284, delta: "+13.7%", icon: <Users className="h-5 w-5" />, spark: [142, 168, 201, 234, 268, 271] },
-  { label: "Total Hires", value: 94, delta: "+9.1%", icon: <UserCheck className="h-5 w-5" />, spark: [11, 13, 16, 19, 22, 24] },
-  { label: "Conversion Rate", value: 7.3, suffix: "%", decimals: 1, delta: "+0.8%", icon: <Percent className="h-5 w-5" />, spark: [6.1, 6.4, 6.7, 6.9, 7.1, 7.3] },
-  { label: "Perf After Hire", value: 88, suffix: "%", delta: "+2.4%", icon: <Gauge className="h-5 w-5" />, spark: [82, 83, 85, 86, 87, 88] },
-];
-
-const maxCollege = Math.max(...collegeAnalytics.map((c) => c.applicants));
+const SHORTLISTED = ["Under Review", "Interview Scheduled", "Selected", "Onboarded"];
+const SELECTEDPLUS = ["Selected", "Onboarded"];
 
 export default function AnalyticsPage() {
-  const sources = sourceEffectiveness.map((s) => ({ source: s.source, applicants: s.applicants }));
-  const geo = geoAnalytics.map((g) => ({ state: g.state, applicants: g.applicants }));
+  const { candidates } = useRecruitment();
+  const total = candidates.length;
+  const inStage = (s: string[]) => candidates.filter((c) => s.includes(c.stage)).length;
+  const onboarded = inStage(["Onboarded"]);
+  const rate = (n: number, d: number) => (d ? Math.round((n / d) * 1000) / 10 : 0);
+  const avgFit = total ? Math.round(candidates.reduce((s, c) => s + (c.fitScore ?? 0), 0) / total) : 0;
+
+  const groupBy = (pick: (c: (typeof candidates)[number]) => string) => {
+    const m = new Map<string, number>();
+    candidates.forEach((c) => { const k = pick(c) || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
+    return [...m.entries()].map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
+  };
+
+  const roleBars = (["Marketing", "Sales", "HR"] as const).map((role) => ({ role, value: candidates.filter((c) => c.role === role).length, color: ROLE_COLORS[role] }));
+  const sources = groupBy((c) => c.source).map((x) => ({ source: x.k, applicants: x.v }));
+  const geo = groupBy((c) => c.state).map((x) => ({ state: x.k, applicants: x.v })).slice(0, 8);
+  const colleges = groupBy((c) => c.college).slice(0, 6).map((x) => {
+    const inC = candidates.filter((c) => c.college === x.k);
+    const sel = inC.filter((c) => SELECTEDPLUS.includes(c.stage)).length;
+    return { college: x.k, applicants: x.v, selectionRate: rate(sel, x.v) };
+  });
+  const maxCollege = Math.max(1, ...colleges.map((c) => c.applicants));
+  const funnel = [
+    { stage: "Applied", value: total },
+    { stage: "Under Review", value: inStage(SHORTLISTED) },
+    { stage: "Interview", value: inStage(["Interview Scheduled", "Selected", "Onboarded"]) },
+    { stage: "Selected", value: inStage(SELECTEDPLUS) },
+    { stage: "Onboarded", value: onboarded },
+  ];
+  const conv = [
+    { label: "Application → Review", value: rate(funnel[1].value, total) },
+    { label: "Review → Interview", value: rate(funnel[2].value, funnel[1].value) },
+    { label: "Interview → Selected", value: rate(funnel[3].value, funnel[2].value) },
+    { label: "Selected → Onboarded", value: rate(onboarded, funnel[3].value) },
+  ];
+
+  const kpis = [
+    { label: "Total Applicants", value: total, icon: <Users className="h-5 w-5" /> },
+    { label: "Hires (Onboarded)", value: onboarded, icon: <UserCheck className="h-5 w-5" /> },
+    { label: "Conversion Rate", value: rate(onboarded, total), suffix: "%", decimals: 1, icon: <Percent className="h-5 w-5" /> },
+    { label: "Avg Fit Score", value: avgFit, icon: <Gauge className="h-5 w-5" /> },
+  ];
 
   return (
     <RoleGate allow={["hr", "management"]}>
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Module 07"
-        title="Analytics & Intelligence"
-        description="Hiring funnels, source effectiveness, college and geographic insights, and department comparisons — the full workforce intelligence picture."
-        actions={<AnalyticsActions />}
-      />
+      <div className="space-y-6">
+        <PageHeader eyebrow="Module 07" title="Analytics & Intelligence" description="Hiring funnel, sources, geography and colleges — computed live from your candidate data." actions={<AnalyticsActions />} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((k, i) => (
-          <Reveal key={k.label} delay={0.05 * i}>
-            <StatCard {...k} />
-          </Reveal>
-        ))}
-      </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {kpis.map((k, i) => (
+            <Reveal key={k.label} delay={0.05 * i}><StatCard {...k} /></Reveal>
+          ))}
+        </div>
 
-      {/* Trend + funnel */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Reveal className="lg:col-span-2" delay={0.05}>
-          <Card className="h-full">
-            <CardHeader
-              title="Monthly hiring trend"
-              subtitle="Applicants vs hires"
-              icon={<LineIcon className="h-5 w-5" />}
-              action={<Badge tone="green">+9.1% YoY</Badge>}
-            />
-            <LineTrend
-              data={monthlyHiring}
-              xKey="month"
-              series={[
-                { key: "applicants", color: "#1D7FFF", name: "Applicants" },
-                { key: "hires", color: "#6BC5FF", name: "Hires" },
-              ]}
-              height={280}
-            />
+        {total === 0 ? (
+          <Card className="grid place-items-center py-16 text-center">
+            <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mjblue-50 text-mjblue"><BarChart3 className="h-6 w-6" /></div>
+            <h3 className="text-lg font-bold text-navy">No data to analyze yet</h3>
+            <p className="mt-1 max-w-sm text-sm text-slate-500">Add candidates in the Recruitment module and your hiring analytics will populate here automatically.</p>
           </Card>
-        </Reveal>
-
-        <Reveal delay={0.1}>
-          <Card className="h-full">
-            <CardHeader title="Hiring funnel" subtitle="Applied → Onboarded" icon={<Filter className="h-5 w-5" />} />
-            <div className="space-y-3">
-              {recruitmentFunnel.map((f, i) => {
-                const pct = Math.round((f.value / recruitmentFunnel[0].value) * 100);
-                return (
-                  <div key={f.stage}>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="text-slate-600">{f.stage}</span>
-                      <span className="font-semibold text-navy tabular-nums">{f.value}</span>
-                    </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-navy/[0.06]">
-                      <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%`, opacity: 1 - i * 0.12 }} />
-                    </div>
+        ) : (
+          <>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Reveal className="lg:col-span-2" delay={0.05}>
+                <Card className="h-full">
+                  <CardHeader title="Applications by role" icon={<BarChart3 className="h-5 w-5" />} />
+                  <BarGroup data={roleBars} xKey="role" series={[{ key: "value", color: "#1D7FFF", name: "Applicants" }]} height={260} />
+                </Card>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <Card className="h-full">
+                  <CardHeader title="Hiring funnel" subtitle="Applied → Onboarded" icon={<Filter className="h-5 w-5" />} />
+                  <div className="space-y-3">
+                    {funnel.map((f, i) => (
+                      <div key={f.stage}>
+                        <div className="mb-1 flex items-center justify-between text-sm"><span className="text-slate-600">{f.stage}</span><span className="font-semibold text-navy tabular-nums">{f.value}</span></div>
+                        <div className="h-2.5 overflow-hidden rounded-full bg-navy/[0.06]"><div className="h-full rounded-full bg-gradient-brand" style={{ width: `${total ? (f.value / total) * 100 : 0}%`, opacity: 1 - i * 0.12 }} /></div>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
+                </Card>
+              </Reveal>
             </div>
-          </Card>
-        </Reveal>
-      </div>
 
-      {/* Source + conversion */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Reveal delay={0.05}>
-          <Card className="h-full">
-            <CardHeader title="Source effectiveness" subtitle="Applicants by channel" />
-            <BarGroup
-              data={sources}
-              xKey="source"
-              series={[{ key: "applicants", color: "#1D7FFF", name: "Applicants" }]}
-              height={250}
-              horizontal
-            />
-          </Card>
-        </Reveal>
-
-        <Reveal delay={0.1}>
-          <Card className="h-full">
-            <CardHeader title="Conversion rates" subtitle="Stage-to-stage efficiency" />
-            <div className="space-y-4 pt-1">
-              {conversionRates.map((c, i) => (
-                <ScoreBar key={c.label} label={c.label} value={c.value} suffix="%" delay={i * 0.1} />
-              ))}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Reveal delay={0.05}>
+                <Card className="h-full">
+                  <CardHeader title="Source effectiveness" subtitle="Applicants by channel" />
+                  <BarGroup data={sources} xKey="source" series={[{ key: "applicants", color: "#1D7FFF", name: "Applicants" }]} height={250} horizontal />
+                </Card>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <Card className="h-full">
+                  <CardHeader title="Conversion rates" subtitle="Stage-to-stage efficiency" />
+                  <div className="space-y-4 pt-1">{conv.map((c, i) => <ScoreBar key={c.label} label={c.label} value={c.value} suffix="%" delay={i * 0.1} />)}</div>
+                </Card>
+              </Reveal>
             </div>
-          </Card>
-        </Reveal>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Reveal delay={0.05}>
+                <Card className="h-full">
+                  <CardHeader title="Geographic distribution" subtitle="Applicants by state" icon={<MapPin className="h-5 w-5" />} />
+                  <BarGroup data={geo} xKey="state" series={[{ key: "applicants", color: "#6BC5FF", name: "Applicants" }]} height={280} horizontal />
+                </Card>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <Card className="h-full">
+                  <CardHeader title="College analytics" subtitle="Volume & selection rate" icon={<GraduationCap className="h-5 w-5" />} />
+                  <div className="space-y-3">
+                    {colleges.map((c) => (
+                      <div key={c.college} className="flex items-center gap-4 rounded-2xl border border-navy/5 bg-offwhite/50 p-3">
+                        <div className="w-40 shrink-0"><p className="truncate text-sm font-semibold text-navy">{c.college}</p><p className="text-xs text-slate-500">{c.applicants} applicants</p></div>
+                        <div className="hidden flex-1 sm:block"><div className="h-2 overflow-hidden rounded-full bg-navy/[0.06]"><div className="h-full rounded-full bg-gradient-brand" style={{ width: `${(c.applicants / maxCollege) * 100}%` }} /></div></div>
+                        <div className="shrink-0 text-right"><p className="text-sm font-bold text-navy">{c.selectionRate}%</p><p className="text-[10px] uppercase tracking-wide text-slate-400">Selection</p></div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </Reveal>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Geographic + department radar */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Reveal delay={0.05}>
-          <Card className="h-full">
-            <CardHeader title="Geographic distribution" subtitle="Applicants by state" icon={<MapPin className="h-5 w-5" />} />
-            <BarGroup
-              data={geo}
-              xKey="state"
-              series={[{ key: "applicants", color: "#6BC5FF", name: "Applicants" }]}
-              height={280}
-              horizontal
-            />
-          </Card>
-        </Reveal>
-
-        <Reveal delay={0.1}>
-          <Card className="h-full">
-            <CardHeader title="Department comparison" subtitle="HR · Marketing · Sales" icon={<RadarIcon className="h-5 w-5" />} />
-            <RadarCompare
-              data={departmentRadar}
-              series={[
-                { key: "Marketing", color: "#1D7FFF" },
-                { key: "Sales", color: "#0A6BEF" },
-                { key: "HR", color: "#6BC5FF" },
-              ]}
-              height={300}
-            />
-          </Card>
-        </Reveal>
-      </div>
-
-      {/* College analytics */}
-      <Reveal delay={0.05}>
-        <Card>
-          <CardHeader title="College analytics" subtitle="Volume, selection rate & performance after hiring" icon={<GraduationCap className="h-5 w-5" />} />
-          <div className="space-y-3">
-            {collegeAnalytics.map((c) => (
-              <div key={c.college} className="flex items-center gap-4 rounded-2xl border border-navy/5 bg-offwhite/50 p-3.5">
-                <div className="w-40 shrink-0">
-                  <p className="truncate text-sm font-semibold text-navy">{c.college}</p>
-                  <p className="text-xs text-slate-500">{c.applicants} applicants</p>
-                </div>
-                <div className="hidden flex-1 sm:block">
-                  <div className="h-2 overflow-hidden rounded-full bg-navy/[0.06]">
-                    <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${(c.applicants / maxCollege) * 100}%` }} />
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-5 text-right">
-                  <div>
-                    <p className="text-sm font-bold text-navy">{c.selectionRate}%</p>
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">Selection</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-navy">{c.perfAfterHire}</p>
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">Perf</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </Reveal>
-
-      {/* Department analytics cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {departmentAnalytics.map((d, i) => (
-          <Reveal key={d.dept} delay={0.05 * i}>
-            <Card className="h-full">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="grid h-10 w-10 place-items-center rounded-xl text-white"
-                    style={{ background: ROLE_COLORS[d.dept as Role] }}
-                  >
-                    <Building2 className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-base font-semibold text-navy">{d.dept}</p>
-                    <p className="text-xs text-slate-500">{d.headcount} interns</p>
-                  </div>
-                </div>
-                <Badge tone="blue">{d.openRoles} open</Badge>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-offwhite/60 p-3">
-                  <p className="text-2xl font-bold text-navy">{d.avgPerf}</p>
-                  <p className="text-xs text-slate-500">Avg performance</p>
-                </div>
-                <div className="rounded-2xl bg-offwhite/60 p-3">
-                  <p className="text-2xl font-bold text-navy">{d.retention}%</p>
-                  <p className="text-xs text-slate-500">Retention</p>
-                </div>
-              </div>
-            </Card>
-          </Reveal>
-        ))}
-      </div>
-    </div>
     </RoleGate>
   );
 }

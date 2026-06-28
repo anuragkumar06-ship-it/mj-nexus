@@ -14,12 +14,12 @@ import {
 import { ProgressRing } from "@/components/shared/progress-ring";
 import { ScoreBar } from "@/components/shared/charts";
 import {
-  candidates,
   initials,
   ROLE_COLORS,
   type Candidate,
   type Role,
 } from "@/lib/data";
+import { useRecruitment } from "@/components/dashboard/recruitment-context";
 import { cn, clamp } from "@/lib/utils";
 
 const criteriaLabels = [
@@ -66,9 +66,20 @@ function getAnalysis(c: Candidate) {
 }
 
 export function AiEnginePanel() {
+  const { candidates } = useRecruitment();
   const queue = [...candidates].sort((a, b) => b.fitScore - a.fitScore);
-  const [selectedId, setSelectedId] = useState(queue[0].id);
-  const selected = queue.find((c) => c.id === selectedId)!;
+  const [selectedId, setSelectedId] = useState<string>("");
+  const selected = queue.find((c) => c.id === selectedId) ?? queue[0];
+  if (!selected)
+    return (
+      <div className="rounded-3xl border border-navy/5 bg-white p-12 text-center shadow-card">
+        <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mjblue-50 text-mjblue">
+          <ScanSearch className="h-6 w-6" />
+        </div>
+        <h3 className="text-lg font-bold text-navy">No candidates to score yet</h3>
+        <p className="mt-1 text-sm text-slate-500">Add applicants in the Recruitment module — the AI engine will score them here.</p>
+      </div>
+    );
   const a = getAnalysis(selected);
 
   return (

@@ -18,7 +18,8 @@ import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
 import { initials } from "@/lib/org";
 import { usePeople } from "@/components/app/people";
-import { recruitmentKpis, recruitmentFunnel, interviews } from "@/lib/data";
+import { useRecruitment } from "@/components/dashboard/recruitment-context";
+import { useInterviews } from "@/components/dashboard/interviews-context";
 
 const reqTone: Record<string, "amber" | "green" | "red"> = { Pending: "amber", Approved: "green", Rejected: "red" };
 
@@ -26,17 +27,30 @@ export function HrHome() {
   const { user } = useAuth();
   const { requests } = useApp();
   const { reportsOf, personById } = usePeople();
+  const { candidates } = useRecruitment();
+  const { interviews } = useInterviews();
 
   const myReports = reportsOf(user.id);
   const myInitiated = requests.filter((r) => r.requesterId === user.id);
   const upcoming = interviews.filter((i) => i.status === "Upcoming");
-  const maxFunnel = recruitmentFunnel[0].value;
+
+  const total = candidates.length;
+  const inStage = (arr: string[]) => candidates.filter((c) => arr.includes(c.stage)).length;
+  const recruitmentFunnel = [
+    { stage: "Applied", value: total },
+    { stage: "Under Review", value: inStage(["Under Review", "Interview Scheduled", "Selected", "Onboarded"]) },
+    { stage: "Interview", value: inStage(["Interview Scheduled", "Selected", "Onboarded"]) },
+    { stage: "Selected", value: inStage(["Selected", "Onboarded"]) },
+    { stage: "Onboarded", value: inStage(["Onboarded"]) },
+  ];
+  const maxFunnel = recruitmentFunnel[0].value || 1;
+  const rate = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
 
   const kpis = [
-    { label: "Total Applicants", value: recruitmentKpis.totalApplicants, delta: "+13.7%", icon: <Users className="h-5 w-5" />, spark: [142, 168, 154, 196, 184, 221] },
-    { label: "Shortlisting Rate", value: recruitmentKpis.shortlistingRate, suffix: "%", delta: "+4.1%", icon: <Filter className="h-5 w-5" />, spark: [30, 32, 34, 35, 37, 38] },
-    { label: "Interviews", value: recruitmentKpis.interviewRate, suffix: "%", delta: "+2.3%", icon: <Video className="h-5 w-5" />, spark: [16, 18, 19, 20, 21, 22] },
-    { label: "Hiring Rate", value: recruitmentKpis.hiringRate, suffix: "%", decimals: 1, delta: "+1.2%", icon: <CheckCircle2 className="h-5 w-5" />, spark: [6, 7, 7.5, 8, 9, 9.4] },
+    { label: "Total Applicants", value: total, icon: <Users className="h-5 w-5" /> },
+    { label: "Shortlisting Rate", value: rate(recruitmentFunnel[1].value), suffix: "%", decimals: 1, icon: <Filter className="h-5 w-5" /> },
+    { label: "Interviews", value: interviews.length, icon: <Video className="h-5 w-5" /> },
+    { label: "Hiring Rate", value: rate(recruitmentFunnel[4].value), suffix: "%", decimals: 1, icon: <CheckCircle2 className="h-5 w-5" /> },
   ];
 
   return (
