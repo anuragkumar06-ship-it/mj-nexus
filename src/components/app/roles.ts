@@ -38,6 +38,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
     { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
+    { label: "Certificates", href: "/dashboard/certificates", icon: Award },
   ],
   hr: [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
@@ -58,6 +59,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
     { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
+    { label: "Certificates", href: "/dashboard/certificates", icon: Award },
   ],
 };
 
