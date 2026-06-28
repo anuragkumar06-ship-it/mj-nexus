@@ -7,6 +7,7 @@ import { isSupabaseConfigured } from "@/lib/config";
 interface RecruitmentCtx {
   candidates: Candidate[];
   addCandidate: (c: Candidate) => void;
+  removeCandidate: (id: string) => void;
   live: boolean;
 }
 
@@ -48,7 +49,12 @@ export function RecruitmentProvider({ children }: { children: ReactNode }) {
     if (live) import("@/lib/supabase/recruitment-data").then((m) => m.insertCandidate(c)).catch(() => {});
   };
 
-  return <Ctx.Provider value={{ candidates, addCandidate, live }}>{children}</Ctx.Provider>;
+  const removeCandidate = (id: string) => {
+    setCandidates((prev) => prev.filter((c) => c.id !== id));
+    if (live) import("@/lib/supabase/recruitment-data").then((m) => m.deleteCandidate(id)).catch(() => {});
+  };
+
+  return <Ctx.Provider value={{ candidates, addCandidate, removeCandidate, live }}>{children}</Ctx.Provider>;
 }
 
 export function useRecruitment() {

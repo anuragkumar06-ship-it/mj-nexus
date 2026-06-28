@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, MapPin, Sparkles, Mail, Briefcase, CalendarDays, FileText, Download, Award } from "lucide-react";
+import { GraduationCap, MapPin, Sparkles, Mail, Briefcase, CalendarDays, FileText, Download, Award, Trash2 } from "lucide-react";
 import {
   STAGE_META,
   ROLE_COLORS,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/data";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { useRecruitment } from "@/components/dashboard/recruitment-context";
 import { cn } from "@/lib/utils";
 
@@ -63,11 +64,19 @@ function downloadCV(c: Candidate) {
 const isImageName = (n?: string) => /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(n ?? "");
 
 export function RecruitmentBoard() {
-  const { candidates: allCandidates } = useRecruitment();
+  const { candidates: allCandidates, removeCandidate } = useRecruitment();
+  const { toast } = useToast();
   const [role, setRole] = useState<(typeof roleFilters)[number]>("All");
   const [detail, setDetail] = useState<Candidate | null>(null);
   const filtered =
     role === "All" ? allCandidates : allCandidates.filter((c) => c.role === role);
+
+  const removeCand = (c: Candidate) => {
+    if (typeof window !== "undefined" && !window.confirm(`Remove ${c.name} from the pipeline?`)) return;
+    removeCandidate(c.id);
+    toast({ title: "Candidate removed", description: `${c.name} was removed from the pipeline.`, type: "info" });
+    setDetail(null);
+  };
 
   return (
     <div>
@@ -189,7 +198,7 @@ export function RecruitmentBoard() {
         })}
       </div>
 
-      <CandidateModal candidate={detail} onClose={() => setDetail(null)} />
+      <CandidateModal candidate={detail} onClose={() => setDetail(null)} onRemove={removeCand} />
     </div>
   );
 }
@@ -215,7 +224,7 @@ function CVSection({ title, children }: { title: string; children: ReactNode }) 
   );
 }
 
-function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null; onClose: () => void }) {
+function CandidateModal({ candidate: c, onClose, onRemove }: { candidate: Candidate | null; onClose: () => void; onRemove: (c: Candidate) => void }) {
   return (
     <Modal
       open={!!c}
@@ -257,6 +266,9 @@ function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null
             <Detail icon={<Briefcase className="h-4 w-4" />} label="Experience" value={c.experience} />
             <Detail icon={<Award className="h-4 w-4" />} label="Source" value={c.source} />
             <Detail icon={<CalendarDays className="h-4 w-4" />} label="Applied" value={c.appliedDate} />
+            {(c.internStart || c.internEnd) && (
+              <Detail icon={<CalendarDays className="h-4 w-4" />} label="Internship" value={`${c.internStart ?? "—"} → ${c.internEnd ?? "—"}`} />
+            )}
           </div>
 
           <div>
@@ -299,6 +311,10 @@ function CandidateModal({ candidate: c, onClose }: { candidate: Candidate | null
               </div>
             )}
           </div>
+
+          <button onClick={() => onRemove(c)} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-100">
+            <Trash2 className="h-3.5 w-3.5" /> Remove candidate from pipeline
+          </button>
         </div>
       )}
     </Modal>

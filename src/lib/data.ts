@@ -27,6 +27,8 @@ export interface Candidate {
   email: string;
   resumeUrl?: string;
   resumeName?: string;
+  internStart?: string;
+  internEnd?: string;
 }
 
 export interface Intern {

@@ -45,7 +45,7 @@ export default function RecruitmentPage() {
   ];
 
   return (
-    <RoleGate allow={["hr", "management"]}>
+    <RoleGate allow={["lead", "hr", "management"]}>
       <div className="space-y-6">
         <PageHeader
           eyebrow="Module 01"

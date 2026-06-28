@@ -24,6 +24,8 @@ export function AddCandidateButton() {
   const [skills, setSkills] = useState("");
   const [email, setEmail] = useState("");
   const [cv, setCv] = useState<Attachment[]>([]);
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
 
   const reset = () => {
     setName("");
@@ -34,6 +36,8 @@ export function AddCandidateButton() {
     setSkills("");
     setEmail("");
     setCv([]);
+    setStart("");
+    setEnd("");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -56,6 +60,8 @@ export function AddCandidateButton() {
       email: email.trim() || `${name.trim().toLowerCase().replace(/\s+/g, ".")}@example.com`,
       resumeUrl: cv[0]?.url,
       resumeName: cv[0]?.name,
+      internStart: start || undefined,
+      internEnd: end || undefined,
     };
     addCandidate(c);
     burstConfetti();
@@ -143,6 +149,16 @@ export function AddCandidateButton() {
           <div>
             <label className={labelClass}>Skills (comma separated)</label>
             <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="SEO, Content, Analytics" className={fieldClass} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Internship start</label>
+              <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className={fieldClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Internship end</label>
+              <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className={fieldClass} />
+            </div>
           </div>
           <div>
             <label className={labelClass}>Resume / CV <span className="font-normal text-slate-400">(PDF or image, optional)</span></label>

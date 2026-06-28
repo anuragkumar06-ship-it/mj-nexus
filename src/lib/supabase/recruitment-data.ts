@@ -19,10 +19,12 @@ function candFromRow(r: any): Candidate {
     email: r.email ?? "",
     resumeUrl: r.resume_url ?? undefined,
     resumeName: r.resume_name ?? undefined,
+    internStart: r.intern_start ?? undefined,
+    internEnd: r.intern_end ?? undefined,
   };
 }
 function candToRow(c: Candidate): any {
-  return { id: c.id, name: c.name, role: c.role, college: c.college, state: c.state, source: c.source, stage: c.stage, fit_score: c.fitScore, experience: c.experience, skills: c.skills, email: c.email, resume_url: c.resumeUrl ?? null, resume_name: c.resumeName ?? null };
+  return { id: c.id, name: c.name, role: c.role, college: c.college, state: c.state, source: c.source, stage: c.stage, fit_score: c.fitScore, experience: c.experience, skills: c.skills, email: c.email, resume_url: c.resumeUrl ?? null, resume_name: c.resumeName ?? null, intern_start: c.internStart ?? null, intern_end: c.internEnd ?? null };
 }
 function ivFromRow(r: any): Interview {
   return { id: r.id, candidate: r.candidate, role: r.role, date: r.date, time: r.time, interviewer: r.interviewer, mode: r.mode, status: r.status ?? "Upcoming", score: r.score ?? undefined };
@@ -43,6 +45,10 @@ export async function loadInterviews(): Promise<Interview[]> {
 }
 export async function insertCandidate(c: Candidate) {
   const { error } = await createClient().from("candidates").insert(candToRow(c));
+  if (error) throw error;
+}
+export async function deleteCandidate(id: string) {
+  const { error } = await createClient().from("candidates").delete().eq("id", id);
   if (error) throw error;
 }
 export async function insertInterview(i: Interview) {
