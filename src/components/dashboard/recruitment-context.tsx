@@ -39,7 +39,7 @@ export function RecruitmentProvider({ children }: { children: ReactNode }) {
           })
         );
       } catch {
-        // DB unavailable — keep clean/empty (or seed in demo)
+        // DB unavailable - keep clean/empty (or seed in demo)
       }
     })();
     return () => unsub();
@@ -52,7 +52,7 @@ export function RecruitmentProvider({ children }: { children: ReactNode }) {
       const m = await import("@/lib/supabase/recruitment-data");
       await m.insertCandidate(c);
     } catch (e) {
-      // DB rejected it (e.g. recruitment migration not run) — roll back + let caller surface it.
+      // DB rejected it (e.g. recruitment migration not run) - roll back + let caller surface it.
       setCandidates((prev) => prev.filter((x) => x.id !== c.id));
       throw e;
     }

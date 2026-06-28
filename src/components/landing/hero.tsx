@@ -56,8 +56,8 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.7, ease }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
           >
-            MJ Nexus unifies recruitment, onboarding, performance, certification,
-            and analytics into one intelligent platform — managing the complete
+            Nexus Talent OS unifies recruitment, onboarding, performance, certification,
+            and analytics into one intelligent platform - managing the complete
             candidate and intern lifecycle from application to certification.
           </motion.p>
 
@@ -155,7 +155,7 @@ function HeroPreview() {
             <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
           </div>
-          <span className="text-[11px] font-medium text-white/50">MJ Nexus · Overview</span>
+          <span className="text-[11px] font-medium text-white/50">Nexus Talent OS · Overview</span>
           <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-300">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
             Live

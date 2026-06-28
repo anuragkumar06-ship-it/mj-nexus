@@ -30,7 +30,7 @@ export function Lifecycle() {
             <span className="text-gradient-brand">certification.</span>
           </h2>
           <p className="mt-5 text-lg text-slate-500">
-            One continuous, intelligent flow — no spreadsheets, no scattered
+            One continuous, intelligent flow - no spreadsheets, no scattered
             tools, no lost candidates.
           </p>
         </Reveal>

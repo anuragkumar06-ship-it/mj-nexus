@@ -111,7 +111,7 @@ export function SubmitStandupButton() {
       id: `s${Date.now()}`,
       intern: "Anurag Kumar",
       completed: completed.trim(),
-      priorities: priorities.trim() || "—",
+      priorities: priorities.trim() || "-",
       challenges: challenges.trim() || "None",
       date: "Just now",
     });

@@ -37,7 +37,7 @@ export default function AiEnginePage() {
         <PageHeader
           eyebrow="Module 02"
           title="AI Recruitment Engine"
-          description="Resume intelligence that extracts skills, summarizes candidates, scores role fit, and recommends the next step — automatically."
+          description="Resume intelligence that extracts skills, summarizes candidates, scores role fit, and recommends the next step - automatically."
         />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

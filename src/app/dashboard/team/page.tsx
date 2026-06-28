@@ -10,7 +10,7 @@ export default function TeamPage() {
       <PageHeader
         eyebrow="Team Lead"
         title="My Team"
-        description="Manage your pod — review performance, drill into each intern, share feedback, and escalate headcount to management."
+        description="Manage your pod - review performance, drill into each intern, share feedback, and escalate headcount to management."
       />
       <TeamView />
     </RoleGate>

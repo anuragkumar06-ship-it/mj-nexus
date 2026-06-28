@@ -106,7 +106,7 @@ export function PerformanceCompare({ people, scopeLabel }: { people: Person[]; s
       <Card className="lg:col-span-3">
         <CardHeader
           title="Index comparison"
-          subtitle={selected.size > 0 ? `Comparing ${selected.size} selected` : `All ${ranked.length} — scroll to see more →`}
+          subtitle={selected.size > 0 ? `Comparing ${selected.size} selected` : `All ${ranked.length} - scroll to see more →`}
           icon={<BarChart3 className="h-5 w-5" />}
           action={
             selected.size > 0 ? (

@@ -82,10 +82,10 @@ function CertificatesView() {
         title={canIssue ? "Certificate Studio" : canRequest ? "Certificates & Requests" : "My Certificates"}
         description={
           canIssue
-            ? "Issue any certificate — Completion, Recommendation, Appreciation, Experience or Offer — to anyone in your organization, and action requests from team leads."
+            ? "Issue any certificate - Completion, Recommendation, Appreciation, Experience or Offer - to anyone in your organization, and action requests from team leads."
             : canRequest
             ? "Request management to issue a certificate for any intern, and track your requests."
-            : "Your earned certificates — view and download them anytime."
+            : "Your earned certificates - view and download them anytime."
         }
         actions={
           canIssue ? (
@@ -170,7 +170,7 @@ function CertificatesView() {
       <Card className="mb-6">
         <CardHeader title="My certificates" subtitle="Issued to you" icon={<Award className="h-5 w-5" />} />
         {myCerts.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">No certificates yet — they&apos;ll appear here once issued to you.</p>
+          <p className="py-8 text-center text-sm text-slate-400">No certificates yet - they&apos;ll appear here once issued to you.</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {myCerts.map((c) => (
@@ -192,7 +192,7 @@ function CertificatesView() {
         <Card>
           <CardHeader title="Issued certificates" subtitle="Everything issued across the organization" icon={<Award className="h-5 w-5" />} action={<Badge tone="navy">{issued.length}</Badge>} />
           {issued.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-400">Nothing issued yet — issue your first certificate above.</p>
+            <p className="py-8 text-center text-sm text-slate-400">Nothing issued yet - issue your first certificate above.</p>
           ) : (
             <div className="space-y-2.5">
               {issued.map((c) => (
@@ -325,7 +325,7 @@ function IssueModal({ open, onClose, people, issuer, onIssue }: { open: boolean;
       open={open}
       onClose={onClose}
       title="Issue a certificate"
-      description="Choose a recipient and type — then issue."
+      description="Choose a recipient and type - then issue."
       icon={<Award className="h-5 w-5" />}
       footer={<><Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button><Button size="sm" onClick={issue}><Award className="h-4 w-4" /> Issue</Button></>}
     >

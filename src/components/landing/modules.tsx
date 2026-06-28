@@ -86,8 +86,8 @@ export function Modules() {
             <span className="text-gradient-animated">Seven intelligent modules.</span>
           </h2>
           <p className="mt-5 text-lg text-slate-500">
-            Everything MJ Marketing Consultancy needs to recruit, develop, and
-            certify talent — replacing scattered tools with a single source of truth.
+            Everything Nexus Talent OS needs to recruit, develop, and
+            certify talent - replacing scattered tools with a single source of truth.
           </p>
         </Reveal>
 

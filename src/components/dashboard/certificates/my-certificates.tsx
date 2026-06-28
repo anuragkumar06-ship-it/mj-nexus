@@ -11,7 +11,7 @@ import { burstConfetti } from "@/lib/confetti";
 import { certificates } from "@/lib/data";
 
 function certSVG(name: string, type: string, role: string) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#060c3f"/><stop offset="1" stop-color="#04082e"/></linearGradient></defs><rect width="1000" height="700" fill="url(#bg)"/><rect x="26" y="26" width="948" height="648" rx="22" fill="none" stroke="#6bc5ff" stroke-opacity="0.3"/><text x="500" y="140" text-anchor="middle" fill="#bfe6ff" font-family="Inter,Arial" font-size="18" letter-spacing="6">MJ NEXUS · CERTIFICATE OF ${type.toUpperCase()}</text><text x="500" y="220" text-anchor="middle" fill="#ffffff" fill-opacity="0.7" font-family="Inter,Arial" font-size="18">This certificate is proudly presented to</text><text x="500" y="320" text-anchor="middle" fill="#ffffff" font-family="Georgia,serif" font-size="64" font-weight="bold">${name}</text><text x="500" y="400" text-anchor="middle" fill="#cdd7ff" font-family="Inter,Arial" font-size="20">${role} Internship · MJ Marketing Consultancy</text><text x="500" y="600" text-anchor="middle" fill="#6bc5ff" fill-opacity="0.7" font-family="Inter,Arial" font-size="13">Verified by MJ Nexus · June 2026</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#060c3f"/><stop offset="1" stop-color="#04082e"/></linearGradient></defs><rect width="1000" height="700" fill="url(#bg)"/><rect x="26" y="26" width="948" height="648" rx="22" fill="none" stroke="#6bc5ff" stroke-opacity="0.3"/><text x="500" y="140" text-anchor="middle" fill="#bfe6ff" font-family="Inter,Arial" font-size="18" letter-spacing="6">NEXUS TALENT OS · CERTIFICATE OF ${type.toUpperCase()}</text><text x="500" y="220" text-anchor="middle" fill="#ffffff" fill-opacity="0.7" font-family="Inter,Arial" font-size="18">This certificate is proudly presented to</text><text x="500" y="320" text-anchor="middle" fill="#ffffff" font-family="Georgia,serif" font-size="64" font-weight="bold">${name}</text><text x="500" y="400" text-anchor="middle" fill="#cdd7ff" font-family="Inter,Arial" font-size="20">${role} Internship · Nexus Talent OS</text><text x="500" y="600" text-anchor="middle" fill="#6bc5ff" fill-opacity="0.7" font-family="Inter,Arial" font-size="13">Verified by Nexus Talent OS · June 2026</text></svg>`;
 }
 
 export function MyCertificates() {
@@ -30,7 +30,7 @@ export function MyCertificates() {
       <Card className="grid place-items-center py-16 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-mjblue-50 text-mjblue"><Award className="h-7 w-7" /></div>
         <h3 className="text-lg font-bold text-navy">No certificates yet</h3>
-        <p className="mt-1 max-w-sm text-sm text-slate-500">Keep completing tasks and growing — your completion and appreciation certificates will appear here once issued by HR.</p>
+        <p className="mt-1 max-w-sm text-sm text-slate-500">Keep completing tasks and growing - your completion and appreciation certificates will appear here once issued by HR.</p>
       </Card>
     );
   }

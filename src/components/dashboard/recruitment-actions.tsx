@@ -47,8 +47,8 @@ export function AddCandidateButton() {
       id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `c${Date.now()}`,
       name: name.trim(),
       role,
-      college: college.trim() || "—",
-      state: state.trim() || "—",
+      college: college.trim() || "-",
+      state: state.trim() || "-",
       source,
       stage: "Applied",
       fitScore: Math.round(68 + Math.random() * 28),
@@ -76,7 +76,7 @@ export function AddCandidateButton() {
       })
       .catch((err: { message?: string; hint?: string; code?: string }) => {
         const detail = err?.message
-          ? `${err.message}${err.hint ? " — " + err.hint : ""}`
+          ? `${err.message}${err.hint ? " - " + err.hint : ""}`
           : "Run supabase/migrate-recruitment.sql in Supabase, then try again.";
         toast({ title: "Couldn't save candidate", description: detail, type: "error" });
       });
@@ -170,7 +170,7 @@ export function AddCandidateButton() {
           </div>
           <div>
             <label className={labelClass}>Resume / CV <span className="font-normal text-slate-400">(PDF or image, optional)</span></label>
-            <FileDropzone files={cv} onChange={setCv} max={1} accept="application/pdf,image/*" hint="Upload the candidate's CV — PDF or image" />
+            <FileDropzone files={cv} onChange={setCv} max={1} accept="application/pdf,image/*" hint="Upload the candidate's CV - PDF or image" />
           </div>
         </form>
       </Modal>

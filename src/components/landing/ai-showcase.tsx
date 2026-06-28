@@ -25,9 +25,9 @@ export function AiShowcase() {
             AI that reads between <span className="text-gradient-animated-light">the lines.</span>
           </h2>
           <p className="mt-5 max-w-lg text-lg leading-relaxed text-white/65">
-            Stop manually reviewing hundreds of resumes. MJ Nexus parses every
+            Stop manually reviewing hundreds of resumes. Nexus Talent OS parses every
             application, scores candidates against the role, and recommends the
-            best next step — in seconds.
+            best next step - in seconds.
           </p>
 
           <ul className="mt-8 space-y-3">

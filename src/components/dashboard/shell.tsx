@@ -180,7 +180,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
     ? people
         .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 6)
-        .map((p) => ({ label: p.name, sub: `${p.title} · ${p.team ?? "—"}`, href: personTarget, avatarUrl: p.avatarUrl }))
+        .map((p) => ({ label: p.name, sub: `${p.title} · ${p.team ?? "-"}`, href: personTarget, avatarUrl: p.avatarUrl }))
     : [];
 
   const go = (href: string) => {

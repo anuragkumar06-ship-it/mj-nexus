@@ -14,7 +14,7 @@ export default function ApprovalsPage() {
         title={intern ? "My Requests" : "Approvals"}
         description={
           intern
-            ? "Raise leave, deadline, or resource requests — they route to your manager for approval."
+            ? "Raise leave, deadline, or resource requests - they route to your manager for approval."
             : role === "management"
               ? "Sign off on requests escalated by HR and team leads. Teams own their own day-to-day approvals."
               : "Approve requests from your reports, and escalate decisions that need management sign-off."

@@ -44,15 +44,15 @@ export function defaultMessage(name: string, type: CertType, opts?: { role?: str
   const team = opts?.team ? ` on the ${opts.team} team` : "";
   switch (type) {
     case "Completion":
-      return `This is to certify that ${name} has successfully completed the ${role}Internship Program at MJ Marketing Consultancy${team}, demonstrating dedication, professionalism and strong results throughout the program.`;
+      return `This is to certify that ${name} has successfully completed the ${role}Internship Program at Nexus Talent OS${team}, demonstrating dedication, professionalism and strong results throughout the program.`;
     case "Appreciation":
-      return `In recognition of ${name}'s outstanding contribution and commitment${team} at MJ Marketing Consultancy. ${first}'s energy, ownership and impact have been truly valued by the entire team.`;
+      return `In recognition of ${name}'s outstanding contribution and commitment${team} at Nexus Talent OS. ${first}'s energy, ownership and impact have been truly valued by the entire team.`;
     case "Letter of Recommendation":
-      return `To whom it may concern,\n\nI am pleased to recommend ${name}, who worked as a ${role}intern at MJ Marketing Consultancy${team}. ${first} consistently delivered high-quality work, collaborated effectively, and showed remarkable growth. I recommend ${first} without reservation for any future opportunity.`;
+      return `To whom it may concern,\n\nI am pleased to recommend ${name}, who worked as a ${role}intern at Nexus Talent OS${team}. ${first} consistently delivered high-quality work, collaborated effectively, and showed remarkable growth. I recommend ${first} without reservation for any future opportunity.`;
     case "Experience":
-      return `This is to certify that ${name} served as a ${role}intern at MJ Marketing Consultancy${team}. During this tenure, ${first} gained hands-on experience and contributed meaningfully to live projects with professionalism and commitment.`;
+      return `This is to certify that ${name} served as a ${role}intern at Nexus Talent OS${team}. During this tenure, ${first} gained hands-on experience and contributed meaningfully to live projects with professionalism and commitment.`;
     case "Offer":
-      return `Dear ${first},\n\nWe are delighted to offer you the position of ${role}Intern at MJ Marketing Consultancy${team}. We were impressed by your skills and enthusiasm, and we look forward to welcoming you to the team.`;
+      return `Dear ${first},\n\nWe are delighted to offer you the position of ${role}Intern at Nexus Talent OS${team}. We were impressed by your skills and enthusiasm, and we look forward to welcoming you to the team.`;
   }
 }
 

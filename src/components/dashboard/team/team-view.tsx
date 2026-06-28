@@ -141,7 +141,7 @@ export function TeamView() {
                       <p className="text-sm text-navy/70">{f.note}</p>
                     </div>
                   ))}
-                  {theirFeedback.length === 0 && <p className="py-4 text-center text-sm text-slate-400">No feedback yet — add the first.</p>}
+                  {theirFeedback.length === 0 && <p className="py-4 text-center text-sm text-slate-400">No feedback yet - add the first.</p>}
                 </div>
               </Card>
             </div>

@@ -17,7 +17,7 @@ export function FileDropzone({
   onChange,
   accept = "image/*,application/pdf",
   max = 6,
-  hint = "PNG, JPG or PDF — screenshots of your work",
+  hint = "PNG, JPG or PDF - screenshots of your work",
 }: {
   files: Attachment[];
   onChange: (files: Attachment[]) => void;

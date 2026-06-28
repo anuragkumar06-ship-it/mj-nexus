@@ -77,7 +77,7 @@ export function AiEnginePanel() {
           <ScanSearch className="h-6 w-6" />
         </div>
         <h3 className="text-lg font-bold text-navy">No candidates to score yet</h3>
-        <p className="mt-1 text-sm text-slate-500">Add applicants in the Recruitment module — the AI engine will score them here.</p>
+        <p className="mt-1 text-sm text-slate-500">Add applicants in the Recruitment module - the AI engine will score them here.</p>
       </div>
     );
   const a = getAnalysis(selected);

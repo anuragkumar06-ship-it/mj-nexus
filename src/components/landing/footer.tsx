@@ -41,7 +41,7 @@ export function Footer() {
             <Logo theme="dark" />
             <p className="mt-4 text-sm leading-relaxed text-white/55">
               The AI-powered operating system for internship-driven
-              organizations — by MJ Marketing Consultancy.
+              organizations - by Nexus Talent OS.
             </p>
           </div>
           {cols.map((c) => (
@@ -64,7 +64,7 @@ export function Footer() {
         </div>
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-7 sm:flex-row">
           <p className="text-xs text-white/45">
-            © {new Date().getFullYear()} MJ Marketing Consultancy · MJ Nexus v1.0
+            © {new Date().getFullYear()} Nexus Talent OS · Nexus Talent OS v1.0
           </p>
           <p className="text-xs text-white/45">
             Designed with a premium glassmorphism aesthetic · Built on Next.js

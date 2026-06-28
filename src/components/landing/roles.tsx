@@ -42,7 +42,7 @@ export function Roles() {
           </h2>
           <p className="mt-5 text-lg text-slate-500">
             One platform that gives every member of the team exactly what they
-            need — from first application to final certificate.
+            need - from first application to final certificate.
           </p>
         </Reveal>
 

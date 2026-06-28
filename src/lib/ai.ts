@@ -1,5 +1,5 @@
 /* ============================================================
-   MJ NEXUS — AI provider (server only)
+   NEXUS TALENT OS - AI provider (server only)
    Calls OpenAI or Gemini via fetch using env keys.
    Import ONLY from server route handlers.
    ============================================================ */
@@ -84,7 +84,7 @@ async function geminiChat(messages: ChatMessage[], opts: ChatOpts): Promise<stri
       lastErr = `${model}: ${String(e)}`;
     }
   }
-  throw new Error(`Gemini failed — ${lastErr}`);
+  throw new Error(`Gemini failed - ${lastErr}`);
 }
 
 /** Best-effort JSON extraction from an LLM response. */

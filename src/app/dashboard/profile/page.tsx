@@ -113,13 +113,13 @@ export default function ProfilePage() {
             )}
 
             <div className="mt-5 w-full space-y-2 text-left">
-              <Row icon={<Mail className="h-4 w-4" />} label="Email" value={user.email || "—"} />
+              <Row icon={<Mail className="h-4 w-4" />} label="Email" value={user.email || "-"} />
               {user.phone && <Row icon={<Phone className="h-4 w-4" />} label="Phone" value={user.phone} />}
               {user.team && <Row icon={<Users className="h-4 w-4" />} label="Team" value={user.team} />}
               {manager && <Row icon={<ShieldCheck className="h-4 w-4" />} label="Reports to" value={manager.name} />}
               {user.joined && <Row icon={<CalendarDays className="h-4 w-4" />} label="Member since" value={user.joined} />}
               {(user.internStart || user.internEnd) && (
-                <Row icon={<CalendarDays className="h-4 w-4" />} label="Internship" value={`${user.internStart ?? "—"} → ${user.internEnd ?? "—"}`} />
+                <Row icon={<CalendarDays className="h-4 w-4" />} label="Internship" value={`${user.internStart ?? "-"} → ${user.internEnd ?? "-"}`} />
               )}
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function ProfilePage() {
         {/* Editable details + stats */}
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Edit details" subtitle="Update how you appear across MJ Nexus" icon={<Save className="h-5 w-5" />} />
+            <CardHeader title="Edit details" subtitle="Update how you appear across Nexus Talent OS" icon={<Save className="h-5 w-5" />} />
             <div className="space-y-4">
               <Field label="Full name" value={name} onChange={setName} placeholder="Your name" />
               <Field label="Title / headline" value={title} onChange={setTitle} placeholder="e.g. Marketing Intern" />

@@ -86,8 +86,8 @@ const seedTasks: Task[] = [
   { id: "t10", title: "Weekly performance report", assigneeId: "i2", assignerId: "l1", team: "Growth", status: "In Progress", priority: "Low", due: "Jun 30", tag: "Analytics" },
 ];
 const seedSubmissions: Submission[] = [
-  { id: "sub1", taskId: "t2", internId: "i2", note: "A/B test is live — variant B lifted CTR by 14%. Dashboard screenshot attached.", files: [{ name: "ab-test-results.png", size: 184320, type: "image/png" }], submittedAt: "2026-06-26", status: "Pending Review" },
-  { id: "sub2", taskId: "t3", internId: "i3", note: "Final brand refresh deck v3 attached.", files: [{ name: "brand-refresh-v3.pdf", size: 982400, type: "application/pdf" }], submittedAt: "2026-06-24", status: "Approved", reviewNote: "Excellent — ship it." },
+  { id: "sub1", taskId: "t2", internId: "i2", note: "A/B test is live - variant B lifted CTR by 14%. Dashboard screenshot attached.", files: [{ name: "ab-test-results.png", size: 184320, type: "image/png" }], submittedAt: "2026-06-26", status: "Pending Review" },
+  { id: "sub2", taskId: "t3", internId: "i3", note: "Final brand refresh deck v3 attached.", files: [{ name: "brand-refresh-v3.pdf", size: 982400, type: "application/pdf" }], submittedAt: "2026-06-24", status: "Approved", reviewNote: "Excellent - ship it." },
   { id: "sub3", taskId: "t6", internId: "i6", note: "Updated scoring weights and added 2 new signals.", files: [{ name: "crm-scoring.png", size: 220160, type: "image/png" }], submittedAt: "2026-06-26", status: "Pending Review" },
 ];
 const seedStandups: Standup[] = [
@@ -96,16 +96,16 @@ const seedStandups: Standup[] = [
   { id: "s3", internId: "i7", completed: "Screened 18 candidates; 5 shortlisted", priorities: "Schedule HR interviews", challenges: "Calendar conflicts with leads", date: "Today" },
 ];
 const seedRequests: ApprovalRequest[] = [
-  { id: "r1", type: "Deadline Extension", title: "2-day extension on Q3 calendar", detail: "Brand assets are delayed — requesting 2 extra days to deliver the Q3 content calendar.", requesterId: "i1", approverId: "l1", status: "Pending", createdAt: "Today" },
-  { id: "r2", type: "Leave", title: "Leave request — 2 days", detail: "Personal leave on Jun 30 and Jul 1.", requesterId: "i5", approverId: "l3", status: "Pending", createdAt: "Today" },
-  { id: "r3", type: "Hiring Approval", title: "Final offer — Arjun Kumar (Growth)", detail: "Candidate cleared all rounds (interview 91, Strong Hire). Requesting management sign-off to extend the final offer.", requesterId: "h1", approverId: "m1", status: "Pending", createdAt: "Yesterday" },
+  { id: "r1", type: "Deadline Extension", title: "2-day extension on Q3 calendar", detail: "Brand assets are delayed - requesting 2 extra days to deliver the Q3 content calendar.", requesterId: "i1", approverId: "l1", status: "Pending", createdAt: "Today" },
+  { id: "r2", type: "Leave", title: "Leave request - 2 days", detail: "Personal leave on Jun 30 and Jul 1.", requesterId: "i5", approverId: "l3", status: "Pending", createdAt: "Today" },
+  { id: "r3", type: "Hiring Approval", title: "Final offer - Arjun Kumar (Growth)", detail: "Candidate cleared all rounds (interview 91, Strong Hire). Requesting management sign-off to extend the final offer.", requesterId: "h1", approverId: "m1", status: "Pending", createdAt: "Yesterday" },
   { id: "r4", type: "Headcount", title: "Add 1 Brand intern for Q3", detail: "Brand team is at capacity. Requesting approval to open 1 additional Brand internship seat.", requesterId: "l2", approverId: "m1", status: "Pending", createdAt: "Yesterday" },
   { id: "r5", type: "Resource", title: "Canva Pro license", detail: "Requesting a Canva Pro seat for design tasks.", requesterId: "i7", approverId: "h1", status: "Pending", createdAt: "Today" },
-  { id: "r6", type: "Leave", title: "Leave request — 1 day", detail: "Half-day on Jun 27.", requesterId: "i2", approverId: "l1", status: "Approved", createdAt: "2 days ago", decisionNote: "Approved — enjoy!" },
+  { id: "r6", type: "Leave", title: "Leave request - 1 day", detail: "Half-day on Jun 27.", requesterId: "i2", approverId: "l1", status: "Approved", createdAt: "2 days ago", decisionNote: "Approved - enjoy!" },
 ];
 const seedFeedback: Feedback[] = [
   { id: "f1", internId: "i1", fromId: "l1", rating: 5, note: "Exceptional ownership leading the growth pod. Keep raising the bar.", date: "Jun 22" },
-  { id: "f2", internId: "i2", fromId: "l1", rating: 4, note: "Strong analytical work — tighten delivery timelines slightly.", date: "Jun 20" },
+  { id: "f2", internId: "i2", fromId: "l1", rating: 4, note: "Strong analytical work - tighten delivery timelines slightly.", date: "Jun 20" },
   { id: "f3", internId: "i5", fromId: "l3", rating: 3, note: "Good effort; focus on deadline adherence this sprint.", date: "Jun 19" },
 ];
 
@@ -183,7 +183,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
           unsub = subscribeAll((entity, type, obj) => apply[entity]?.(obj, type));
         } catch {
-          // DB unavailable — keep seed data so the app still works.
+          // DB unavailable - keep seed data so the app still works.
         }
       } else {
         try {

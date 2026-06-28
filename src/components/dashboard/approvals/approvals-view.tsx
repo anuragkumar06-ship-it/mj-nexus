@@ -178,7 +178,7 @@ export function ApprovalsView() {
       toast({ title: "Add a title", type: "error" });
       return;
     }
-    const finalTitle = isLeave ? `${leaveType} leave — ${leaveDays} day${leaveDays > 1 ? "s" : ""}` : title.trim();
+    const finalTitle = isLeave ? `${leaveType} leave - ${leaveDays} day${leaveDays > 1 ? "s" : ""}` : title.trim();
     const finalDetail = isLeave ? reason.trim() : detail.trim() || title.trim();
     const payload = {
       type,
@@ -238,10 +238,10 @@ export function ApprovalsView() {
         updatePerson(requester.id, { internEnd: newEnd });
         toast({ title: "Approved · timeline updated", description: `${requester.name}'s internship now ends ${newEnd} (unpaid leave).`, type: "success" });
       } else {
-        toast({ title: "Request approved", description: `${req.title} — ${personById(req.requesterId)?.name}.`, type: "success" });
+        toast({ title: "Request approved", description: `${req.title} - ${personById(req.requesterId)?.name}.`, type: "success" });
       }
     } else {
-      toast({ title: "Request declined", description: `${req.title} — ${personById(req.requesterId)?.name}.`, type: "info" });
+      toast({ title: "Request declined", description: `${req.title} - ${personById(req.requesterId)?.name}.`, type: "info" });
     }
     setDecideFor(null);
   };
@@ -297,7 +297,7 @@ export function ApprovalsView() {
         <Card>
           <CardHeader title="Decision history" subtitle="Requests you've approved or declined" icon={<ClipboardList className="h-5 w-5" />} action={<div className="flex items-center gap-2">{history.length > 0 && <button onClick={() => clearDecisions(history.map((r) => r.id))} className="flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2.5 py-1 text-[11px] font-semibold text-navy/60 transition-colors hover:text-rose-600"><Trash2 className="h-3 w-3" /> Clear</button>}<Badge tone="navy">{history.length}</Badge></div>} />
           {history.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-400">No decisions yet — approved & declined requests will appear here.</p>
+            <p className="py-8 text-center text-sm text-slate-400">No decisions yet - approved & declined requests will appear here.</p>
           ) : (
             <div className="space-y-2.5">
               {history.map((r) => (
@@ -346,7 +346,7 @@ export function ApprovalsView() {
       {/* Management oversight */}
       {role === "management" && (
         <Card>
-          <CardHeader title="All activity" subtitle="Read-only oversight — tap a row to view" icon={<ClipboardList className="h-5 w-5" />} action={activity.length > 0 ? <button onClick={() => clearActivity(activity.map((r) => r.id))} className="flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2.5 py-1 text-[11px] font-semibold text-navy/60 transition-colors hover:text-rose-600"><Trash2 className="h-3 w-3" /> Clear</button> : undefined} />
+          <CardHeader title="All activity" subtitle="Read-only oversight - tap a row to view" icon={<ClipboardList className="h-5 w-5" />} action={activity.length > 0 ? <button onClick={() => clearActivity(activity.map((r) => r.id))} className="flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2.5 py-1 text-[11px] font-semibold text-navy/60 transition-colors hover:text-rose-600"><Trash2 className="h-3 w-3" /> Clear</button> : undefined} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-sm">
               <thead><tr className="border-b border-navy/5 text-xs uppercase tracking-wider text-slate-400"><th className="pb-3 font-semibold">Request</th><th className="pb-3 font-semibold">Requester</th><th className="pb-3 font-semibold">Approver</th><th className="pb-3 text-right font-semibold">Status</th></tr></thead>
@@ -466,7 +466,7 @@ export function ApprovalsView() {
               <label className={labelClass}>
                 {decideFor.decision === "Changes" ? "What should they change?" : "Note"}{decideFor.decision !== "Changes" && <span className="font-normal text-slate-400"> (optional)</span>}
               </label>
-              <textarea rows={3} value={decideNote} onChange={(e) => setDecideNote(e.target.value)} placeholder={decideFor.decision === "Changes" ? "e.g. I can only grant unpaid leave — please resubmit as unpaid." : "Add a note for the requester…"} className={textareaClass} />
+              <textarea rows={3} value={decideNote} onChange={(e) => setDecideNote(e.target.value)} placeholder={decideFor.decision === "Changes" ? "e.g. I can only grant unpaid leave - please resubmit as unpaid." : "Add a note for the requester…"} className={textareaClass} />
             </div>
           </div>
         )}

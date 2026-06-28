@@ -26,7 +26,7 @@ const STATUS_TONE: Record<string, string> = {
   Present: "bg-emerald-400",
   Leave: "bg-amber-400",
   Absent: "bg-rose-300",
-  "—": "bg-navy/10",
+  "-": "bg-navy/10",
 };
 const ROLE_LABEL: Record<PolicyRole, string> = { intern: "Intern", lead: "Team Lead", hr: "HR" };
 const inputClass =
@@ -76,11 +76,11 @@ function AttendanceView() {
   const presentSet = new Set(records.filter((r) => r.status === "Present").map((r) => `${r.userId}_${r.date}`));
 
   const onLeave = (userId: string, date: string) => approvedLeaves.some((r) => r.requesterId === userId && date >= (r.fromDate as string) && date <= (r.toDate as string));
-  const statusFor = (userId: string, date: string): "Present" | "Leave" | "Absent" | "—" => {
+  const statusFor = (userId: string, date: string): "Present" | "Leave" | "Absent" | "-" => {
     if (presentSet.has(`${userId}_${date}`)) return "Present";
     if (onLeave(userId, date)) return "Leave";
     if (date < today) return "Absent";
-    return "—";
+    return "-";
   };
   const presentCount = (userId: string) => recent.filter((d) => statusFor(userId, d) === "Present").length;
   const leaveCount = (userId: string) => recent.filter((d) => statusFor(userId, d) === "Leave").length;
@@ -121,7 +121,7 @@ function AttendanceView() {
 
       {isManagement && (
         <Card className="mb-6">
-          <CardHeader title="Attendance policy" subtitle="Per-role minimum attendance % and required hours in the dashboard before check-in — management only" icon={<Gauge className="h-5 w-5" />} />
+          <CardHeader title="Attendance policy" subtitle="Per-role minimum attendance % and required hours in the dashboard before check-in - management only" icon={<Gauge className="h-5 w-5" />} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[460px] text-left text-sm">
               <thead>
@@ -168,7 +168,7 @@ function AttendanceView() {
             <div className="rounded-2xl border border-navy/10 bg-offwhite/60 p-4 text-center">
               <Lock className="mx-auto h-7 w-7 text-slate-400" />
               <p className="mt-2 text-sm font-semibold text-navy">Check-in unlocks after {requiredHours}h</p>
-              <p className="text-xs text-slate-500">Stay active in the dashboard — {remainingLabel} left today.</p>
+              <p className="text-xs text-slate-500">Stay active in the dashboard - {remainingLabel} left today.</p>
             </div>
           ) : (
             <button onClick={doCheckIn} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand py-4 text-sm font-semibold text-white shadow-card transition-transform hover:scale-[1.01]">
@@ -251,7 +251,7 @@ function AttendanceView() {
                           <div><p className="font-medium text-navy">{p.name}</p><p className="text-xs text-slate-400">{p.title}</p></div>
                         </div>
                       </td>
-                      <td className="py-3"><Badge tone={st === "Present" ? "green" : st === "Leave" ? "amber" : st === "Absent" ? "red" : "navy"}>{st === "—" ? "Pending" : st}</Badge></td>
+                      <td className="py-3"><Badge tone={st === "Present" ? "green" : st === "Leave" ? "amber" : st === "Absent" ? "red" : "navy"}>{st === "-" ? "Pending" : st}</Badge></td>
                       <td className="py-3">
                         <div className="flex gap-1">
                           {recent.map((d) => <span key={d} className={cn("h-4 w-1.5 rounded-sm", STATUS_TONE[statusFor(p.id, d)])} title={`${d} · ${statusFor(p.id, d)}`} />)}

@@ -1,4 +1,4 @@
-/** Lightweight confetti burst — no dependencies, appends to <body>. */
+/** Lightweight confetti burst - no dependencies, appends to <body>. */
 export function burstConfetti(originX = 0.5, originY = 0.32) {
   if (typeof document === "undefined") return;
   const colors = ["#1D7FFF", "#6BC5FF", "#0A6BEF", "#FCD34D", "#34D399", "#FFFFFF"];

@@ -54,7 +54,7 @@ export function ManagementHome() {
     { label: "Departments", value: deptCount, icon: TrendingUp },
   ];
 
-  // Real department radar — average indices per team (top 3 teams by headcount).
+  // Real department radar - average indices per team (top 3 teams by headcount).
   const teamNames = Array.from(new Set(interns.map((i) => i.team).filter(Boolean))) as string[];
   const topTeams = teamNames.slice(0, 3);
   const avgFor = (team: string, key: "performance" | "reliability" | "growth" | "attendance") => {
@@ -84,7 +84,7 @@ export function ManagementHome() {
           <Card className="h-full">
             <CardHeader title="Department comparison" subtitle="Performance · retention · engagement" icon={<RadarIcon className="h-5 w-5" />} action={<Link href="/dashboard/analytics" className="text-xs font-semibold text-mjblue hover:underline">Full analytics</Link>} />
             {topTeams.length === 0 ? (
-              <p className="py-16 text-center text-sm text-slate-400">No team performance data yet — add interns with teams to compare.</p>
+              <p className="py-16 text-center text-sm text-slate-400">No team performance data yet - add interns with teams to compare.</p>
             ) : (
               <RadarCompare data={radarData} series={radarSeries} height={300} />
             )}
@@ -136,7 +136,7 @@ export function ManagementHome() {
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700"><TrendingUp className="h-3.5 w-3.5" /> Top performer</p>
                   <div className="mt-2 flex items-center gap-3">
                     <Avatar name={top.name} url={top.avatarUrl} className="h-10 w-10" />
-                    <div><p className="text-sm font-semibold text-navy">{top.name}</p><p className="text-xs text-slate-500">{top.title} · {top.performance ?? "—"}</p></div>
+                    <div><p className="text-sm font-semibold text-navy">{top.name}</p><p className="text-xs text-slate-500">{top.title} · {top.performance ?? "-"}</p></div>
                     <ArrowUpRight className="ml-auto h-4 w-4 text-emerald-500" />
                   </div>
                 </Link>
@@ -145,7 +145,7 @@ export function ManagementHome() {
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-700"><TriangleAlert className="h-3.5 w-3.5" /> Needs attention</p>
                   <div className="mt-2 flex items-center gap-3">
                     <Avatar name={atRisk.name} url={atRisk.avatarUrl} className="h-10 w-10" />
-                    <div><p className="text-sm font-semibold text-navy">{atRisk.name}</p><p className="text-xs text-slate-500">{atRisk.title} · {atRisk.performance ?? "—"}</p></div>
+                    <div><p className="text-sm font-semibold text-navy">{atRisk.name}</p><p className="text-xs text-slate-500">{atRisk.title} · {atRisk.performance ?? "-"}</p></div>
                     <ArrowUpRight className="ml-auto h-4 w-4 text-amber-500" />
                   </div>
                 </Link>
@@ -153,7 +153,7 @@ export function ManagementHome() {
               </div>
             ) : (
               <Link href="/dashboard/people" className="flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-navy/10 py-10 text-sm font-medium text-mjblue">
-                No interns yet — open People to add your team <ArrowUpRight className="h-4 w-4" />
+                No interns yet - open People to add your team <ArrowUpRight className="h-4 w-4" />
               </Link>
             )}
           </Card>

@@ -89,7 +89,7 @@ export default function LoginPage() {
           return;
         }
       }
-      toast({ title: "Signed in", description: "Welcome back to MJ Nexus.", type: "success" });
+      toast({ title: "Signed in", description: "Welcome back to Nexus Talent OS.", type: "success" });
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -121,14 +121,14 @@ export default function LoginPage() {
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }} className="text-4xl font-bold leading-tight tracking-tight text-white">
               One platform. <span className="text-gradient-animated-light">Four roles.</span>
             </motion.h1>
-            <p className="mt-4 text-lg leading-relaxed text-white/65">The premium workspace for MJ Marketing Consultancy — recruitment, internships, performance, and growth, all in one place.</p>
+            <p className="mt-4 text-lg leading-relaxed text-white/65">The premium workspace for Nexus Talent OS - recruitment, internships, performance, and growth, all in one place.</p>
 
             {!live && (
               <AnimatePresence mode="wait">
                 <motion.div key={role} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }} className="glass-dark mt-10 flex items-center gap-4 rounded-2xl p-4">
                   <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-brand text-sm font-bold text-white">{initials(person.name)}</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] uppercase tracking-wider text-sky-200">Demo — you&apos;ll enter as</p>
+                    <p className="text-[11px] uppercase tracking-wider text-sky-200">Demo - you&apos;ll enter as</p>
                     <p className="truncate font-semibold text-white">{person.name}</p>
                     <p className="truncate text-xs text-white/55">{person.title} · {meta.label}</p>
                   </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
               </AnimatePresence>
             )}
           </div>
-          <p className="text-xs text-white/40">© {new Date().getFullYear()} MJ Marketing Consultancy</p>
+          <p className="text-xs text-white/40">© {new Date().getFullYear()} Nexus Talent OS</p>
         </div>
       </div>
 
@@ -148,16 +148,16 @@ export default function LoginPage() {
           <div className="mb-8 lg:hidden"><Logo theme="light" size={40} /></div>
 
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight text-navy">Sign in to MJ Nexus</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-navy">Sign in to Nexus Talent OS</h2>
             <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ring-inset", live ? "bg-emerald-50 text-emerald-600 ring-emerald-500/20" : "bg-amber-50 text-amber-600 ring-amber-500/20")}>
               {live ? "Live" : "Demo"}
             </span>
           </div>
           <p className="mt-1.5 text-sm text-slate-500">
-            {live ? "Sign in with your work email or Google to access your workspace." : "Pick a role to preview, then continue — credentials are prefilled."}
+            {live ? "Sign in with your work email or Google to access your workspace." : "Pick a role to preview, then continue - credentials are prefilled."}
           </p>
 
-          {/* Role selection (demo only — in live, your role comes from your account) */}
+          {/* Role selection (demo only - in live, your role comes from your account) */}
           {!live && (
             <div className="mt-6">
               <p className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Preview as role</p>

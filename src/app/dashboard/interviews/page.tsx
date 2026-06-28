@@ -32,7 +32,7 @@ export default function InterviewsPage() {
         <PageHeader
           eyebrow="Module 03"
           title="AI Interview System"
-          description="Schedule interviews and assess communication, confidence, and role-fit — all live and saved."
+          description="Schedule interviews and assess communication, confidence, and role-fit - all live and saved."
           actions={<ScheduleInterviewButton />}
         />
 

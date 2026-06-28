@@ -13,12 +13,12 @@ export function Cta() {
             <div className="absolute bottom-0 right-10 h-56 w-56 rounded-full bg-sky/20 blur-[100px]" />
             <div className="relative mx-auto max-w-2xl">
               <h2 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-                Ready to make MJ Nexus your{" "}
+                Ready to make Nexus Talent OS your{" "}
                 <span className="text-gradient-animated-light">talent operating system?</span>
               </h2>
               <p className="mt-5 text-lg text-white/65">
                 Launch the platform and explore every module with realistic
-                sample data — recruitment, AI scoring, interviews, performance,
+                sample data - recruitment, AI scoring, interviews, performance,
                 and analytics.
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-3">

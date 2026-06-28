@@ -16,7 +16,7 @@ interface Msg {
 
 const greeting: Msg = {
   role: "ai",
-  text: "Hi there 👋 I'm your MJ Nexus AI. Ask me about your candidates, interns, tasks, or approvals — I answer from your live data.",
+  text: "Hi there 👋 I'm your Nexus Talent OS AI. Ask me about your candidates, interns, tasks, or approvals - I answer from your live data.",
 };
 
 const prompts = [
@@ -42,7 +42,7 @@ export function AiAssistant() {
     const count = (arr: { status: string }[], s: string) => arr.filter((x) => x.status === s).length;
     if (role === "intern") {
       const mine = tasks.filter((t) => t.assigneeId === user.id);
-      L.push(`My tasks: ${mine.length} total — To Do ${count(mine, "To Do")}, In Progress ${count(mine, "In Progress")}, Submitted ${count(mine, "Submitted")}, Approved ${count(mine, "Approved")}.`);
+      L.push(`My tasks: ${mine.length} total - To Do ${count(mine, "To Do")}, In Progress ${count(mine, "In Progress")}, Submitted ${count(mine, "Submitted")}, Approved ${count(mine, "Approved")}.`);
       L.push(`My requests raised: ${requests.filter((r) => r.requesterId === user.id).length}. Feedback received: ${feedback.filter((f) => f.internId === user.id).length}.`);
       L.push(`My performance ${user.performance ?? "n/a"}, reliability ${user.reliability ?? "n/a"}, growth ${user.growth ?? "n/a"}.`);
     } else if (role === "lead") {
@@ -84,7 +84,7 @@ export function AiAssistant() {
         }),
       });
       const data = await res.json();
-      setMessages((m) => [...m, { role: "ai", text: data.reply || "I couldn't generate a reply just now — please try again." }]);
+      setMessages((m) => [...m, { role: "ai", text: data.reply || "I couldn't generate a reply just now - please try again." }]);
     } catch {
       setMessages((m) => [...m, { role: "ai", text: `I couldn't reach the assistant. Here's your live summary:\n\n${buildContext()}` }]);
     } finally {
@@ -131,7 +131,7 @@ export function AiAssistant() {
                         </div>
                         <div>
                           <p className="flex items-center gap-1.5 font-semibold text-white">
-                            MJ Nexus AI
+                            Nexus Talent OS AI
                             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
                           </p>
                           <p className="text-xs text-white/55">Always-on talent copilot</p>
@@ -209,7 +209,7 @@ export function AiAssistant() {
                     <input
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Ask MJ Nexus AI…"
+                      placeholder="Ask Nexus Talent OS AI…"
                       className="h-11 flex-1 rounded-xl border border-navy/10 bg-offwhite/60 px-3.5 text-sm text-navy outline-none transition-all placeholder:text-slate-400 focus:border-mjblue/50 focus:ring-4 focus:ring-mjblue/10"
                     />
                     <button

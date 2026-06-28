@@ -10,7 +10,7 @@ export default function PeoplePage() {
       <PageHeader
         eyebrow="Management"
         title="People Directory"
-        description="Company-wide oversight — drill into any intern, team lead, or HR member for their individual data, or scan the org summary."
+        description="Company-wide oversight - drill into any intern, team lead, or HR member for their individual data, or scan the org summary."
       />
       <PeopleDirectory />
     </RoleGate>

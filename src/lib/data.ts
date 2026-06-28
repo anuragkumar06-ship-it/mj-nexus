@@ -1,5 +1,5 @@
 /* ============================================================
-   MJ NEXUS — Centralized mock data
+   NEXUS TALENT OS - Centralized mock data
    Realistic sample data powering all modules (no backend yet).
    ============================================================ */
 
@@ -265,8 +265,8 @@ export const certificates: Certificate[] = [
   { id: "cer1", recipient: "Ananya Iyer", type: "Completion", role: "Marketing", issued: "2026-06-20", status: "Issued", score: 96 },
   { id: "cer2", recipient: "Myra Gupta", type: "Recommendation", role: "HR", issued: "2026-06-21", status: "Issued", score: 92 },
   { id: "cer3", recipient: "Arjun Kumar", type: "Appreciation", role: "Marketing", issued: "2026-06-24", status: "Generating", score: 90 },
-  { id: "cer4", recipient: "Vihaan Desai", type: "Completion", role: "Marketing", issued: "—", status: "Draft", score: 87 },
-  { id: "cer5", recipient: "Diya Patel", type: "Recommendation", role: "HR", issued: "—", status: "Draft", score: 85 },
+  { id: "cer4", recipient: "Vihaan Desai", type: "Completion", role: "Marketing", issued: "-", status: "Draft", score: 87 },
+  { id: "cer5", recipient: "Diya Patel", type: "Recommendation", role: "HR", issued: "-", status: "Draft", score: 85 },
 ];
 
 export const certificateStats = {

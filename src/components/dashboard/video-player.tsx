@@ -110,7 +110,7 @@ export function VideoPlayer({
     }
   };
 
-  // YouTube IFrame API — real watch-progress tracking.
+  // YouTube IFrame API - real watch-progress tracking.
   useEffect(() => {
     if (!open || parsed.kind !== "youtube" || !parsed.ytId) return;
     let player: any;
@@ -217,7 +217,7 @@ export function VideoPlayer({
               </div>
               {!tracked && (
                 <p className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
-                  <Info className="h-3 w-3" /> This source plays in-app but can&apos;t auto-track progress — mark complete when you finish.
+                  <Info className="h-3 w-3" /> This source plays in-app but can&apos;t auto-track progress - mark complete when you finish.
                 </p>
               )}
             </div>

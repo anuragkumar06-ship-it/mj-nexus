@@ -42,7 +42,7 @@ export function Logo({
               theme === "dark" ? "text-white" : "text-navy"
             )}
           >
-            MJ Nexus
+            Nexus
           </span>
           <span
             className={cn(

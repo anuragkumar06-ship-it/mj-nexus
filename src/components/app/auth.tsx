@@ -112,7 +112,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
             base.phone = prof.phone ?? base.phone;
           }
         } catch {
-          // no profile row yet — stays a clean intern
+          // no profile row yet - stays a clean intern
         }
         // Auto-link: if this email was added as a candidate, adopt their name.
         try {
@@ -132,7 +132,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
         let allowed = true;
         try {
           const email = (session.user.email ?? "").toLowerCase();
-          const adminList = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@mjconsultancy.com")
+          const adminList = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@nexustalent.io")
             .toLowerCase()
             .split(",")
             .map((s) => s.trim())
@@ -143,7 +143,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
             allowed = true;
           } else {
             const { data: cands, error } = await supabase.from("candidates").select("email");
-            if (error) allowed = true; // can't read the allowlist (table missing) — don't lock anyone out
+            if (error) allowed = true; // can't read the allowlist (table missing) - don't lock anyone out
             else allowed = (cands ?? []).some((c: { email?: string }) => (c.email ?? "").toLowerCase() === email);
           }
         } catch {
@@ -234,7 +234,7 @@ function AccessDenied() {
         </div>
         <h1 className="text-xl font-bold text-navy">Access not authorized</h1>
         <p className="mt-2 text-sm text-slate-500">
-          This email isn&apos;t on the approved list yet. Ask your MJ Nexus administrator to add you as a candidate, then sign in again.
+          This email isn&apos;t on the approved list yet. Ask your Nexus Talent OS administrator to add you as a candidate, then sign in again.
         </p>
         <button
           onClick={signOut}

@@ -50,7 +50,7 @@ export default function RecruitmentPage() {
         <PageHeader
           eyebrow="Module 01"
           title="Recruitment Management"
-          description="Track every candidate from application to onboarding — all live and saved to your database."
+          description="Track every candidate from application to onboarding - all live and saved to your database."
           actions={
             <>
               <ExportCandidatesButton />
@@ -79,7 +79,7 @@ export default function RecruitmentPage() {
             <Card className="h-full">
               <CardHeader title="Applications by role" subtitle="Where demand is concentrated" icon={<BarChart3 className="h-5 w-5" />} />
               {total === 0 ? (
-                <p className="py-10 text-center text-sm text-slate-400">No candidates yet — add your first applicant to see the breakdown.</p>
+                <p className="py-10 text-center text-sm text-slate-400">No candidates yet - add your first applicant to see the breakdown.</p>
               ) : (
                 <BarGroup data={roleBars} xKey="role" series={[{ key: "value", color: "#1D7FFF", name: "Applicants" }]} height={250} />
               )}

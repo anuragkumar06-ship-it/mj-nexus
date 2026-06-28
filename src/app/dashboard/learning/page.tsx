@@ -130,7 +130,7 @@ function LearningHub() {
       <PageHeader
         eyebrow="Learning"
         title="Learning Hub"
-        description="Curated videos and training materials — your progress is tracked toward your growth index."
+        description="Curated videos and training materials - your progress is tracked toward your growth index."
         actions={canManage ? <Button size="sm" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add material</Button> : undefined}
       />
 
@@ -184,7 +184,7 @@ function LearningHub() {
 
       {canManage && pendingItems.length > 0 && (
         <Card className="mb-6">
-          <CardHeader title="Pending approval" subtitle={isApprover ? "Materials added by team leads / HR — approve to publish" : "Awaiting management approval"} icon={<Loader2 className="h-5 w-5" />} action={<Badge tone="amber">{pendingItems.length}</Badge>} />
+          <CardHeader title="Pending approval" subtitle={isApprover ? "Materials added by team leads / HR - approve to publish" : "Awaiting management approval"} icon={<Loader2 className="h-5 w-5" />} action={<Badge tone="amber">{pendingItems.length}</Badge>} />
           <div className="space-y-2.5">
             {pendingItems.map((it) => (
               <div key={it.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5">
@@ -212,7 +212,7 @@ function LearningHub() {
             <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-mjblue-50 text-mjblue"><GraduationCap className="h-7 w-7" /></div>
             <h3 className="text-lg font-bold text-navy">No learning materials yet</h3>
             <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
-              {canManage ? "Add your first video or training material so your team can start learning." : "Your team hasn't added materials yet — check back soon."}
+              {canManage ? "Add your first video or training material so your team can start learning." : "Your team hasn't added materials yet - check back soon."}
             </p>
             {canManage && <Button size="sm" className="mt-5" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add material</Button>}
           </div>
@@ -298,7 +298,7 @@ function LearningHub() {
           </div>
           <div><label className={labelClass}>Category</label><input value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} placeholder="e.g. Marketing, Sales, Branding" className={fieldClass} /></div>
           <div>
-            <label className={labelClass}>Folder <span className="font-normal text-slate-400">(optional — group related materials)</span></label>
+            <label className={labelClass}>Folder <span className="font-normal text-slate-400">(optional - group related materials)</span></label>
             <input value={f.folder} onChange={(e) => setF({ ...f, folder: e.target.value })} placeholder="e.g. Marketing Foundations" list="mj-learning-folders" className={fieldClass} />
             <datalist id="mj-learning-folders">{folders.map((fl) => <option key={fl} value={fl} />)}</datalist>
           </div>

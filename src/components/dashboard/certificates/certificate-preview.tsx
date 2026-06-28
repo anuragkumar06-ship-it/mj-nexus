@@ -23,7 +23,7 @@ function buildSVG(name: string, c: Certificate, vid: string) {
   </defs>
   <rect width="1000" height="700" fill="url(#bg)"/>
   <rect x="26" y="26" width="948" height="648" rx="22" fill="none" stroke="#6bc5ff" stroke-opacity="0.3" stroke-width="1.5"/>
-  <text x="500" y="130" text-anchor="middle" fill="#bfe6ff" font-family="Inter,Arial,sans-serif" font-size="18" letter-spacing="7">MJ NEXUS · ${esc(c.title.toUpperCase())}</text>
+  <text x="500" y="130" text-anchor="middle" fill="#bfe6ff" font-family="Inter,Arial,sans-serif" font-size="18" letter-spacing="7">NEXUS TALENT OS · ${esc(c.title.toUpperCase())}</text>
   <text x="500" y="210" text-anchor="middle" fill="#ffffff" fill-opacity="0.7" font-family="Inter,Arial,sans-serif" font-size="18">This is proudly presented to</text>
   <text x="500" y="310" text-anchor="middle" fill="#ffffff" font-family="Georgia,'Times New Roman',serif" font-size="64" font-weight="bold">${esc(name)}</text>
   <line x1="360" y1="350" x2="640" y2="350" stroke="#6bc5ff" stroke-opacity="0.5"/>
@@ -36,7 +36,7 @@ function buildSVG(name: string, c: Certificate, vid: string) {
   <text x="780" y="600" text-anchor="middle" fill="#ffffff" fill-opacity="0.7" font-family="Inter,Arial,sans-serif" font-size="16">${esc(c.createdAt || "2026")}</text>
   <line x1="700" y1="615" x2="860" y2="615" stroke="#ffffff" stroke-opacity="0.25"/>
   <text x="780" y="638" text-anchor="middle" fill="#ffffff" fill-opacity="0.5" font-family="Inter,Arial,sans-serif" font-size="12" letter-spacing="2">ISSUED</text>
-  <text x="500" y="672" text-anchor="middle" fill="#6bc5ff" fill-opacity="0.7" font-family="Inter,Arial,sans-serif" font-size="12">Verified by MJ Nexus · ID ${vid}</text>
+  <text x="500" y="672" text-anchor="middle" fill="#6bc5ff" fill-opacity="0.7" font-family="Inter,Arial,sans-serif" font-size="12">Verified by Nexus Talent OS · ID ${vid}</text>
 </svg>`;
 }
 
@@ -48,7 +48,7 @@ export function downloadCert(c: Certificate, name: string) {
   const safe = name.replace(/\s+/g, "-");
   const typeSafe = c.type.replace(/\s+/g, "-");
   if (isLetter(c.type)) {
-    downloadFile(`${safe}-${typeSafe}.txt`, `${c.title}\n\n${c.message}\n\n— ${c.issuedByName || "MJ Marketing Consultancy"}\nMJ Marketing Consultancy · Verified ID ${vId(c.id)}`);
+    downloadFile(`${safe}-${typeSafe}.txt`, `${c.title}\n\n${c.message}\n\n- ${c.issuedByName || "Nexus Talent OS"}\nNexus Talent OS · Verified ID ${vId(c.id)}`);
     return;
   }
   downloadFile(`${safe}-${typeSafe}.svg`, buildSVG(name, c, vId(c.id)), "image/svg+xml");
@@ -94,7 +94,7 @@ export function CertificatePreview({ c, name }: { c: Certificate; name: string }
       <div className="relative">
         <div className="flex items-center justify-between">
           <Logo theme="dark" />
-          <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-sky/70">MJ Marketing Consultancy</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-sky/70">Nexus Talent OS</span>
         </div>
 
         {letter ? (
@@ -102,7 +102,7 @@ export function CertificatePreview({ c, name }: { c: Certificate; name: string }
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">{c.title}</p>
             <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-white/80">{c.message}</p>
             <p className="mt-6 font-serif text-lg italic text-sky-200">{c.issuedByName || "M. Joshi"}</p>
-            <p className="text-[10px] uppercase tracking-wider text-white/50">MJ Marketing Consultancy</p>
+            <p className="text-[10px] uppercase tracking-wider text-white/50">Nexus Talent OS</p>
           </div>
         ) : (
           <div className="mt-8 text-center">
@@ -134,7 +134,7 @@ export function CertificatePreview({ c, name }: { c: Certificate; name: string }
         </div>
 
         <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-white/40">
-          <BadgeCheck className="h-3.5 w-3.5 text-sky" /> Verified by MJ Nexus · ID {vId(c.id)}
+          <BadgeCheck className="h-3.5 w-3.5 text-sky" /> Verified by Nexus Talent OS · ID {vId(c.id)}
         </div>
       </div>
     </div>

@@ -25,7 +25,7 @@ export default function AnalyticsPage() {
 
   const groupBy = (pick: (c: (typeof candidates)[number]) => string) => {
     const m = new Map<string, number>();
-    candidates.forEach((c) => { const k = pick(c) || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
+    candidates.forEach((c) => { const k = pick(c) || "-"; m.set(k, (m.get(k) ?? 0) + 1); });
     return [...m.entries()].map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
   };
 
@@ -62,7 +62,7 @@ export default function AnalyticsPage() {
   return (
     <RoleGate allow={["hr", "management"]}>
       <div className="space-y-6">
-        <PageHeader eyebrow="Module 07" title="Analytics & Intelligence" description="Hiring funnel, sources, geography and colleges — computed live from your candidate data." actions={<AnalyticsActions />} />
+        <PageHeader eyebrow="Module 07" title="Analytics & Intelligence" description="Hiring funnel, sources, geography and colleges - computed live from your candidate data." actions={<AnalyticsActions />} />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {kpis.map((k, i) => (

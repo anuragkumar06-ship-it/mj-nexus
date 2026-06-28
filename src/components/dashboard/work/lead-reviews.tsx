@@ -61,7 +61,7 @@ export function LeadReviews() {
 
   const decide = (decision: "Approved" | "Changes Requested") => {
     if (!reviewSub) return;
-    reviewSubmission(reviewSub.id, decision, reviewNote.trim() || (decision === "Approved" ? "Approved — great work." : "Please revise and resubmit."));
+    reviewSubmission(reviewSub.id, decision, reviewNote.trim() || (decision === "Approved" ? "Approved - great work." : "Please revise and resubmit."));
     if (decision === "Approved") burstConfetti();
     toast({
       title: decision === "Approved" ? "Submission approved" : "Changes requested",
@@ -92,7 +92,7 @@ export function LeadReviews() {
 
       {/* Review queue */}
       <Card className="mb-6">
-        <CardHeader title="Review queue" subtitle="Approve work or request changes — with proof attached" icon={<ClipboardCheck className="h-5 w-5" />} action={<Badge tone="amber">{pending.length} pending</Badge>} />
+        <CardHeader title="Review queue" subtitle="Approve work or request changes - with proof attached" icon={<ClipboardCheck className="h-5 w-5" />} action={<Badge tone="amber">{pending.length} pending</Badge>} />
         {pending.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-400">No submissions waiting for review. 🎉</p>
         ) : (

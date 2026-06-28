@@ -94,7 +94,7 @@ export function InterviewsTable() {
               <td className="py-3">
                 <Badge tone={statusTone[iv.status]}>{iv.status}</Badge>
               </td>
-              <td className="py-3 text-right font-bold text-navy">{iv.score ? iv.score : "—"}</td>
+              <td className="py-3 text-right font-bold text-navy">{iv.score ? iv.score : "-"}</td>
             </tr>
           ))}
         </tbody>

@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { people as seedPeople, type Person, type Role } from "@/lib/org";
 import { isSupabaseConfigured } from "@/lib/config";
 
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@mjconsultancy.com")
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "founder@nexustalent.io")
   .toLowerCase()
   .split(",")
   .map((s) => s.trim())
@@ -141,13 +141,13 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
           id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `c${Date.now()}`,
           name: email.split("@")[0],
           role: "Marketing",
-          college: "—",
-          state: "—",
+          college: "-",
+          state: "-",
           source: "Referral",
           stage: "Onboarded",
           fitScore: 0,
           appliedDate: new Date().toISOString().slice(0, 10),
-          experience: "—",
+          experience: "-",
           skills: [],
           email,
         });

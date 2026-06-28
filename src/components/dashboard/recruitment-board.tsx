@@ -286,7 +286,7 @@ function CandidateModal({ candidate: c, onClose, onRemove, onStageChange }: { ca
             <Detail icon={<Award className="h-4 w-4" />} label="Source" value={c.source} />
             <Detail icon={<CalendarDays className="h-4 w-4" />} label="Applied" value={c.appliedDate} />
             {(c.internStart || c.internEnd) && (
-              <Detail icon={<CalendarDays className="h-4 w-4" />} label="Internship" value={`${c.internStart ?? "—"} → ${c.internEnd ?? "—"}`} />
+              <Detail icon={<CalendarDays className="h-4 w-4" />} label="Internship" value={`${c.internStart ?? "-"} → ${c.internEnd ?? "-"}`} />
             )}
           </div>
 

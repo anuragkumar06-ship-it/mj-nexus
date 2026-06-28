@@ -54,7 +54,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
           unsubP = m.subscribeProgress(user.id, (rid, p) => setProgressMap((prev) => ({ ...prev, [rid]: p })));
         }
       } catch {
-        // DB unavailable — stay clean
+        // DB unavailable - stay clean
       }
     })();
     return () => {

@@ -10,17 +10,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MJ Nexus — The Operating System for Internship-Driven Teams",
+  title: "Nexus Talent OS - The Operating System for Internship-Driven Teams",
   description:
-    "MJ Nexus is a premium AI-powered platform that manages the complete candidate and intern lifecycle — recruitment, onboarding, performance, certification, and analytics — for MJ Marketing Consultancy.",
+    "Nexus Talent OS is a premium AI-powered platform that manages the complete candidate and intern lifecycle - recruitment, onboarding, performance, certification, and analytics - for Nexus Talent OS.",
   keywords: [
-    "MJ Nexus",
+    "Nexus Talent OS",
     "internship management",
     "AI recruitment",
     "talent intelligence",
-    "MJ Marketing Consultancy",
+    "Nexus Talent OS",
   ],
-  authors: [{ name: "MJ Marketing Consultancy" }],
+  authors: [{ name: "Nexus Talent OS" }],
 };
 
 export default function RootLayout({

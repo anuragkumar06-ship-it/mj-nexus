@@ -1,5 +1,5 @@
 /* ============================================================
-   MJ NEXUS — Runtime configuration
+   NEXUS TALENT OS - Runtime configuration
    The app runs in DEMO mode out of the box and automatically
    switches to LIVE mode when the matching env vars are present.
    ============================================================ */

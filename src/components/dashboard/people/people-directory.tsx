@@ -103,7 +103,13 @@ export function PeopleDirectory() {
         toast({ title: "Role updated", description: `Set to ${cr.name}.`, type: "success" });
       }
     } else {
-      setRole(id, value as Role);
+      const r = value as Role;
+      const person = personById(id);
+      const patch: { role: Role; title?: string } = { role: r };
+      // If they currently hold a custom role designation, clear it back to the base label.
+      if (person && customRoles.some((c) => c.name === person.title)) patch.title = ROLE_META[r].label;
+      updatePerson(id, patch);
+      toast({ title: "Role updated", description: `Set to ${ROLE_META[r].label}.`, type: "success" });
     }
   };
   const roleValueOf = (p: { role: Role; title: string }) => (customRoles.find((c) => c.name === p.title) ? `custom:${p.title}` : p.role);
@@ -166,7 +172,7 @@ export function PeopleDirectory() {
         <div className="space-y-4">
           <div className="space-y-2">
             {customRoles.length === 0 ? (
-              <p className="py-2 text-center text-sm text-slate-400">No custom roles yet — add one below.</p>
+              <p className="py-2 text-center text-sm text-slate-400">No custom roles yet - add one below.</p>
             ) : (
               customRoles.map((c) => (
                 <div key={c.name} className="flex items-center justify-between rounded-xl border border-navy/5 bg-offwhite/60 p-2.5">
@@ -224,13 +230,13 @@ export function PeopleDirectory() {
 
       {unauthorized.length > 0 && (
         <Card>
-          <CardHeader title="Sign-in requests" subtitle="People who tried to sign in but aren't on your allowlist — Allow to let them in, or Remove" icon={<ShieldCheck className="h-5 w-5" />} action={<Badge tone="red">{unauthorized.length}</Badge>} />
+          <CardHeader title="Sign-in requests" subtitle="People who tried to sign in but aren't on your allowlist - Allow to let them in, or Remove" icon={<ShieldCheck className="h-5 w-5" />} action={<Badge tone="red">{unauthorized.length}</Badge>} />
           <div className="space-y-2">
             {unauthorized.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                   <Avatar name={p.name} url={p.avatarUrl} className="h-8 w-8" textClassName="text-[10px]" />
-                  <div className="min-w-0"><p className="truncate text-sm font-medium text-navy">{p.name}</p><p className="truncate text-xs text-slate-400">{p.email || "—"}</p></div>
+                  <div className="min-w-0"><p className="truncate text-sm font-medium text-navy">{p.name}</p><p className="truncate text-xs text-slate-400">{p.email || "-"}</p></div>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button onClick={() => { authorizeEmail(p.email); toast({ title: "Access allowed", description: `${p.name || p.email} can now sign in.`, type: "success" }); }} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-white transition-transform hover:scale-[1.03]"><Check className="h-3.5 w-3.5" /> Allow</button>
@@ -267,7 +273,7 @@ export function PeopleDirectory() {
             ))}
             {directory.length === 0 && (
               <p className="py-8 text-center text-sm text-slate-400">
-                {loading ? "Loading people…" : "No one here yet. People appear after they sign in — then assign their role below."}
+                {loading ? "Loading people…" : "No one here yet. People appear after they sign in - then assign their role below."}
               </p>
             )}
           </div>
@@ -294,7 +300,7 @@ export function PeopleDirectory() {
                         {sel.phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {sel.phone}</span>}
                         {sel.joined && <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> joined {sel.joined}</span>}
                         {(sel.internStart || sel.internEnd) && (
-                          <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> internship {sel.internStart ?? "—"} → {sel.internEnd ?? "—"}</span>
+                          <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> internship {sel.internStart ?? "-"} → {sel.internEnd ?? "-"}</span>
                         )}
                       </div>
                     </div>
@@ -302,7 +308,7 @@ export function PeopleDirectory() {
                   <Badge tone={roleTone[sel.role]}>{ROLE_META[sel.role].label}</Badge>
                 </div>
                 {sel.managerId && (
-                  <p className="mt-4 text-xs text-slate-500">Reports to <span className="font-semibold text-navy">{personById(sel.managerId)?.name ?? "—"}</span></p>
+                  <p className="mt-4 text-xs text-slate-500">Reports to <span className="font-semibold text-navy">{personById(sel.managerId)?.name ?? "-"}</span></p>
                 )}
               </Card>
 
@@ -324,7 +330,7 @@ export function PeopleDirectory() {
                   <div>
                     <label className={labelClass}>Reports to</label>
                     <select value={sel.managerId ?? ""} onChange={(e) => setManager(sel.id, e.target.value)} className={fieldClass}>
-                      <option value="">— None —</option>
+                      <option value="">- None -</option>
                       {managerOptions.filter((m) => m.id !== sel.id).map((m) => <option key={m.id} value={m.id}>{m.name} ({ROLE_META[m.role].short})</option>)}
                     </select>
                   </div>
@@ -353,7 +359,7 @@ export function PeopleDirectory() {
           <Card className="grid place-items-center py-16 text-center">
             <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mjblue-50 text-mjblue"><Users className="h-6 w-6" /></div>
             <h3 className="text-lg font-bold text-navy">Your team will appear here</h3>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">As people sign in to MJ Nexus they show up in this directory. Select someone to view their data and assign their role, team, and manager.</p>
+            <p className="mt-1 max-w-sm text-sm text-slate-500">As people sign in to Nexus Talent OS they show up in this directory. Select someone to view their data and assign their role, team, and manager.</p>
           </Card>
         )}
       </div>
@@ -394,7 +400,7 @@ export function PeopleDirectory() {
             <div className="space-y-2">
               {theirFeedback.map((f) => (
                 <div key={f.id} className="rounded-xl border border-navy/5 bg-offwhite/60 p-2.5">
-                  <div className="flex items-center justify-between"><span className="text-xs font-semibold text-navy">{personById(f.fromId)?.name ?? "—"}</span><span className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-3 w-3 ${i < f.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />)}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-xs font-semibold text-navy">{personById(f.fromId)?.name ?? "-"}</span><span className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-3 w-3 ${i < f.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />)}</span></div>
                   <p className="mt-1 text-xs text-navy/70">{f.note}</p>
                 </div>
               ))}
@@ -425,10 +431,10 @@ export function PeopleDirectory() {
               <button key={r.id} onClick={() => setSelId(r.id)} className="flex items-center gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-card">
                 <Avatar name={r.name} url={r.avatarUrl} className="h-9 w-9" textClassName="text-[11px]" />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-navy">{r.name}</p><p className="truncate text-xs text-slate-500">{r.title}</p></div>
-                <span className="text-sm font-bold text-navy">{r.performance ?? "—"}</span>
+                <span className="text-sm font-bold text-navy">{r.performance ?? "-"}</span>
               </button>
             ))}
-            {team.length === 0 && <p className="py-3 text-center text-sm text-slate-400 sm:col-span-2">No direct reports yet — assign someone&apos;s manager to this person.</p>}
+            {team.length === 0 && <p className="py-3 text-center text-sm text-slate-400 sm:col-span-2">No direct reports yet - assign someone&apos;s manager to this person.</p>}
           </div>
         </Card>
       </>

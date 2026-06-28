@@ -39,7 +39,7 @@ export function CertificatesProvider({ children }: { children: ReactNode }) {
           })
         );
       } catch {
-        // DB unavailable — stay clean
+        // DB unavailable - stay clean
       }
     })();
     return () => unsub();

@@ -19,7 +19,7 @@ export default function WorkspacePage() {
     role === "intern" ? "My Work" : role === "management" ? "Task Reviews" : "Tasks & Reviews";
   const description =
     role === "intern"
-      ? "Track your tasks and submit your work with real screenshots & files — your lead reviews every submission."
+      ? "Track your tasks and submit your work with real screenshots & files - your lead reviews every submission."
       : role === "management"
       ? "Review and approve task submissions from your leads & HR, and assign them new work."
       : "Submit your own tasks to management for approval, and review your team's submissions.";

@@ -2,7 +2,7 @@ import { initials } from "@/lib/org";
 import { cn } from "@/lib/utils";
 
 /**
- * Avatar — shows the person's uploaded picture when available, otherwise their
+ * Avatar - shows the person's uploaded picture when available, otherwise their
  * initials on the brand gradient. Pass sizing via `className` (e.g. "h-9 w-9").
  */
 export function Avatar({

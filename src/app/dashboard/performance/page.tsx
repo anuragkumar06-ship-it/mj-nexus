@@ -31,7 +31,7 @@ export default function PerformancePage() {
     ];
     return (
       <>
-        <PageHeader eyebrow="Performance" title="My Performance" description="Your performance, reliability, and growth indices — with feedback from your team lead." />
+        <PageHeader eyebrow="Performance" title="My Performance" description="Your performance, reliability, and growth indices - with feedback from your team lead." />
         <div className="grid gap-4 sm:grid-cols-3">
           {rings.map((r, i) => (
             <Reveal key={r.label} delay={0.05 * i}>

@@ -14,7 +14,7 @@ export function AnalyticsActions() {
   const { toast } = useToast();
 
   const exportReport = () => {
-    const lines: string[] = ["MJ Nexus — Analytics Report (2026)", ""];
+    const lines: string[] = ["Nexus Talent OS - Analytics Report (2026)", ""];
     lines.push("Department,Headcount,Avg Performance,Retention %,Open Roles");
     departmentAnalytics.forEach((d) =>
       lines.push(`${d.dept},${d.headcount},${d.avgPerf},${d.retention},${d.openRoles}`)

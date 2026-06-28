@@ -48,7 +48,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           })
         );
       } catch {
-        // table missing / offline — stay empty
+        // table missing / offline - stay empty
       }
     })();
     return () => unsub();

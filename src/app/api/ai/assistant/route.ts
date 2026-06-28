@@ -4,8 +4,8 @@ import { chat, isAiConfigured, type ChatMessage } from "@/lib/ai";
 export const runtime = "nodejs";
 
 const SYSTEM =
-  "You are MJ Nexus AI, the assistant inside an internship-management platform for MJ Marketing Consultancy. " +
-  "Answer ONLY from the live data provided below. If a number is 0 or a list is empty, say so plainly — never invent candidates, interns, names, or numbers. " +
+  "You are Nexus Talent OS AI, the assistant inside an internship-management platform for Nexus Talent OS. " +
+  "Answer ONLY from the live data provided below. If a number is 0 or a list is empty, say so plainly - never invent candidates, interns, names, or numbers. " +
   "Be concise (under 90 words), warm, and specific.";
 
 /** Honest, data-driven reply when the AI model isn't available. */

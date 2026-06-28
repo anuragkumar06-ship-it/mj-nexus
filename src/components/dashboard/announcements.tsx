@@ -46,7 +46,7 @@ export function AnnouncementsBanner() {
           })
         );
       } catch {
-        // DB unavailable — stay clean
+        // DB unavailable - stay clean
       }
     })();
     return () => unsub();
@@ -82,7 +82,7 @@ export function AnnouncementsBanner() {
         action={canPost ? <Button size="sm" onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Post</Button> : undefined}
       />
       {items.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-400">No announcements yet{canPost ? " — post the first one." : "."}</p>
+        <p className="py-6 text-center text-sm text-slate-400">No announcements yet{canPost ? " - post the first one." : "."}</p>
       ) : (
         <div className="space-y-3">
           {items.slice(0, 4).map((a) => (
