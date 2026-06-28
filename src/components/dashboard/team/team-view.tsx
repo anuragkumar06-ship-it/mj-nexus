@@ -10,7 +10,8 @@ import { ScoreBar } from "@/components/shared/charts";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { reportsOf, personById, initials } from "@/lib/org";
+import { initials } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { cn } from "@/lib/utils";
 
 const textareaClass =
@@ -19,6 +20,7 @@ const textareaClass =
 export function TeamView() {
   const { user } = useAuth();
   const { tasks, feedback, addFeedback, createRequest } = useApp();
+  const { reportsOf, personById } = usePeople();
   const { toast } = useToast();
 
   const reports = reportsOf(user.id);

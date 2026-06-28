@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/components/app/auth";
+import { PeopleProvider } from "@/components/app/people";
 import { AppStoreProvider } from "@/components/app/store";
 import { DashboardShell } from "@/components/dashboard/shell";
 
@@ -9,9 +10,11 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthProvider>
-      <AppStoreProvider>
-        <DashboardShell>{children}</DashboardShell>
-      </AppStoreProvider>
+      <PeopleProvider>
+        <AppStoreProvider>
+          <DashboardShell>{children}</DashboardShell>
+        </AppStoreProvider>
+      </PeopleProvider>
     </AuthProvider>
   );
 }

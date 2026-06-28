@@ -19,6 +19,13 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Extra columns for the org (added idempotently so an existing table is upgraded)
+alter table public.profiles add column if not exists manager_id uuid references public.profiles(id) on delete set null;
+alter table public.profiles add column if not exists performance int;
+alter table public.profiles add column if not exists reliability int;
+alter table public.profiles add column if not exists growth int;
+alter table public.profiles add column if not exists attendance int;
+
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -101,7 +108,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['tasks','submissions','standups','requests','feedback']
+  foreach t in array array['tasks','submissions','standups','requests','feedback','profiles']
   loop
     begin
       execute format('alter publication supabase_realtime add table public.%I;', t);

@@ -19,7 +19,7 @@ import { Reveal } from "@/components/shared/reveal";
 import { ProgressRing } from "@/components/shared/progress-ring";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { personById } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { learningResources } from "@/lib/data";
 
 const taskTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
@@ -37,6 +37,7 @@ const reqTone: Record<string, "amber" | "green" | "red"> = {
 export function InternHome() {
   const { user } = useAuth();
   const { tasks, feedback, requests } = useApp();
+  const { personById } = usePeople();
 
   const myTasks = tasks.filter((t) => t.assigneeId === user.id);
   const active = myTasks.filter((t) => t.status !== "Approved");

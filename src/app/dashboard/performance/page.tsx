@@ -9,7 +9,8 @@ import { ScoreBar } from "@/components/shared/charts";
 import { BarGroup } from "@/components/dashboard/charts";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { internsAll, reportsOf, personById, initials, type Person } from "@/lib/org";
+import { initials, type Person } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 
 const avg = (arr: Person[], key: "performance" | "reliability" | "growth") =>
   arr.length ? Math.round(arr.reduce((s, p) => s + (p[key] ?? 0), 0) / arr.length) : 0;
@@ -17,6 +18,7 @@ const avg = (arr: Person[], key: "performance" | "reliability" | "growth") =>
 export default function PerformancePage() {
   const { user, role } = useAuth();
   const { feedback } = useApp();
+  const { internsAll, reportsOf, personById } = usePeople();
 
   if (role === "intern") {
     const myFeedback = feedback.filter((f) => f.internId === user.id);

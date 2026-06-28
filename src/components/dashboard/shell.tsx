@@ -22,7 +22,8 @@ import { Logo } from "@/components/shared/logo";
 import { roleNav } from "@/components/app/roles";
 import { useAuth } from "@/components/app/auth";
 import { AiAssistant } from "@/components/dashboard/ai-assistant";
-import { people, ROLE_META, initials, type Role } from "@/lib/org";
+import { ROLE_META, initials, type Role } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
@@ -132,6 +133,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, role, setRole, logout, live } = useAuth();
+  const { people } = usePeople();
   const [panel, setPanel] = useState<Panel>(null);
   const [query, setQuery] = useState("");
   const [unread, setUnread] = useState(true);

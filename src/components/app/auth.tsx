@@ -21,11 +21,17 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // isSupabaseConfigured() is a build-time constant, so this branch is stable.
   return isSupabaseConfigured() ? <LiveAuth>{children}</LiveAuth> : <DemoAuth>{children}</DemoAuth>;
 }
 
-/* ---------- Demo mode (no Supabase): role picker + switcher ---------- */
+function titleFor(role?: string) {
+  if (role === "management") return "Management";
+  if (role === "lead") return "Team Lead";
+  if (role === "hr") return "HR Associate";
+  return "Intern";
+}
+
+/* ---------- Demo mode (no Supabase): role picker + seed identity ---------- */
 function DemoAuth({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<Role>("hr");
   useEffect(() => {
@@ -49,12 +55,10 @@ function DemoAuth({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={{ user, role, live: false, setRole, logout }}>{children}</Ctx.Provider>;
 }
 
-/* ---------- Live mode (Supabase): real session + role from profile ---------- */
+/* ---------- Live mode (Supabase): the real signed-in account ---------- */
 function LiveAuth({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<Role | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [person, setPerson] = useState<Person | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -66,33 +70,47 @@ function LiveAuth({ children }: { children: ReactNode }) {
         const session = data.session;
         if (!session) {
           if (active) {
-            setRole(null);
+            setPerson(null);
             setLoading(false);
           }
           return;
         }
-        let r: Role = "intern";
-        let nm = session.user.email ?? "User";
+        const base: Person = {
+          id: session.user.id,
+          name: session.user.email?.split("@")[0] ?? "User",
+          email: session.user.email ?? "",
+          phone: "",
+          role: "intern",
+          title: "Intern",
+          joined: "",
+        };
         try {
           const { data: prof } = await supabase
             .from("profiles")
-            .select("role, name")
+            .select("role,name,team,manager_id,title,performance,reliability,growth,attendance")
             .eq("id", session.user.id)
             .single();
-          if (prof?.role && ROLES.includes(prof.role as Role)) r = prof.role as Role;
-          if (prof?.name) nm = prof.name as string;
+          if (prof) {
+            base.role = ROLES.includes(prof.role as Role) ? (prof.role as Role) : "intern";
+            base.name = prof.name ?? base.name;
+            base.title = prof.title ?? titleFor(prof.role);
+            base.team = prof.team ?? undefined;
+            base.managerId = prof.manager_id ?? undefined;
+            base.performance = prof.performance ?? undefined;
+            base.reliability = prof.reliability ?? undefined;
+            base.growth = prof.growth ?? undefined;
+            base.attendance = prof.attendance ?? undefined;
+          }
         } catch {
-          // profile missing / RLS — safe default to intern
+          // no profile row yet — stays a clean intern
         }
         if (active) {
-          setRole(r);
-          setName(nm);
-          setEmail(session.user.email ?? "");
+          setPerson(base);
           setLoading(false);
         }
       } catch {
         if (active) {
-          setRole("intern");
+          setPerson(null);
           setLoading(false);
         }
       }
@@ -101,7 +119,7 @@ function LiveAuth({ children }: { children: ReactNode }) {
     load();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) {
-        setRole(null);
+        setPerson(null);
         setLoading(false);
       } else {
         load();
@@ -120,13 +138,10 @@ function LiveAuth({ children }: { children: ReactNode }) {
   };
 
   if (loading) return <BrandLoader />;
-  if (!role) return <SignInRequired />;
-
-  const persona = personById(ROLE_IDENTITY[role])!;
-  const user: Person = { ...persona, name: name || persona.name, email: email || persona.email };
+  if (!person) return <SignInRequired />;
 
   return (
-    <Ctx.Provider value={{ user, role, live: true, setRole: () => {}, logout }}>
+    <Ctx.Provider value={{ user: person, role: person.role, live: true, setRole: () => {}, logout }}>
       {children}
     </Ctx.Provider>
   );
@@ -175,7 +190,6 @@ export function useAuth() {
   return ctx;
 }
 
-/** Persist the chosen role in demo mode (ignored in live mode). */
 export function persistRole(r: Role) {
   try {
     localStorage.setItem(KEY, r);

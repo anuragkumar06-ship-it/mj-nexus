@@ -16,11 +16,13 @@ import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { reportsOf, personById, initials } from "@/lib/org";
+import { initials } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 
 export function LeadHome() {
   const { user } = useAuth();
   const { tasks, submissions, requests } = useApp();
+  const { reportsOf, personById } = usePeople();
 
   const reports = reportsOf(user.id);
   const pendingSubs = submissions.filter((s) => {

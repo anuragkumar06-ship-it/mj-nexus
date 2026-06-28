@@ -10,7 +10,8 @@ import { FileDropzone } from "@/components/app/upload";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { useApp, type ApprovalRequest, type Attachment } from "@/components/app/store";
-import { personById, initials, type Role } from "@/lib/org";
+import { initials, type Role } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { burstConfetti } from "@/lib/confetti";
 
 const textareaClass =
@@ -28,6 +29,7 @@ const statusTone: Record<string, "amber" | "green" | "red"> = { Pending: "amber"
 export function ApprovalsView() {
   const { user, role } = useAuth();
   const { requests, createRequest, decideRequest } = useApp();
+  const { personById, people } = usePeople();
   const { toast } = useToast();
 
   const inbox = requests.filter((r) => r.approverId === user.id && r.status === "Pending");
@@ -39,7 +41,10 @@ export function ApprovalsView() {
   const [detail, setDetail] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
 
-  const approverId = role === "intern" ? user.managerId! : "m1";
+  const approverId = (() => {
+    const mgmtId = people.find((p) => p.role === "management")?.id ?? "m1";
+    return role === "intern" ? user.managerId ?? mgmtId : mgmtId;
+  })();
   const canInitiate = role !== "management";
 
   const decide = (r: ApprovalRequest, decision: "Approved" | "Rejected") => {

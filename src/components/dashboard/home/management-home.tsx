@@ -19,14 +19,18 @@ import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { RadarCompare } from "@/components/dashboard/charts";
 import { useApp } from "@/components/app/store";
-import { internsAll, leadsAll, hrAll, personById, initials } from "@/lib/org";
+import { initials } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
+import { useAuth } from "@/components/app/auth";
 import { overviewKpis, departmentRadar } from "@/lib/data";
 
 const kpiIcons = [<Users key="u" className="h-5 w-5" />, <GraduationCap key="g" className="h-5 w-5" />, <Gauge key="p" className="h-5 w-5" />, <Award key="a" className="h-5 w-5" />];
 
 export function ManagementHome() {
   const { requests } = useApp();
-  const queue = requests.filter((r) => r.approverId === "m1" && r.status === "Pending");
+  const { user } = useAuth();
+  const { internsAll, leadsAll, hrAll, personById } = usePeople();
+  const queue = requests.filter((r) => r.approverId === user.id && r.status === "Pending");
   const interns = internsAll();
   const ranked = [...interns].sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0));
   const top = ranked[0];
@@ -102,24 +106,30 @@ export function ManagementHome() {
         <Reveal className="lg:col-span-2" delay={0.1}>
           <Card className="h-full">
             <CardHeader title="People to watch" subtitle="Drill into anyone in the directory" icon={<Users className="h-5 w-5" />} action={<Link href="/dashboard/people" className="text-xs font-semibold text-mjblue hover:underline">Open People</Link>} />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link href="/dashboard/people" className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 transition-transform hover:-translate-y-0.5">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700"><TrendingUp className="h-3.5 w-3.5" /> Top performer</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(top.name)}</div>
-                  <div><p className="text-sm font-semibold text-navy">{top.name}</p><p className="text-xs text-slate-500">{top.title} · {top.performance}</p></div>
-                  <ArrowUpRight className="ml-auto h-4 w-4 text-emerald-500" />
-                </div>
+            {top ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link href="/dashboard/people" className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 transition-transform hover:-translate-y-0.5">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700"><TrendingUp className="h-3.5 w-3.5" /> Top performer</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(top.name)}</div>
+                    <div><p className="text-sm font-semibold text-navy">{top.name}</p><p className="text-xs text-slate-500">{top.title} · {top.performance ?? "—"}</p></div>
+                    <ArrowUpRight className="ml-auto h-4 w-4 text-emerald-500" />
+                  </div>
+                </Link>
+                <Link href="/dashboard/people" className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 transition-transform hover:-translate-y-0.5">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-700"><TriangleAlert className="h-3.5 w-3.5" /> Needs attention</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(atRisk.name)}</div>
+                    <div><p className="text-sm font-semibold text-navy">{atRisk.name}</p><p className="text-xs text-slate-500">{atRisk.title} · {atRisk.performance ?? "—"}</p></div>
+                    <ArrowUpRight className="ml-auto h-4 w-4 text-amber-500" />
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              <Link href="/dashboard/people" className="flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-navy/10 py-10 text-sm font-medium text-mjblue">
+                No interns yet — open People to add your team <ArrowUpRight className="h-4 w-4" />
               </Link>
-              <Link href="/dashboard/people" className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 transition-transform hover:-translate-y-0.5">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-700"><TriangleAlert className="h-3.5 w-3.5" /> Needs attention</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white">{initials(atRisk.name)}</div>
-                  <div><p className="text-sm font-semibold text-navy">{atRisk.name}</p><p className="text-xs text-slate-500">{atRisk.title} · {atRisk.performance}</p></div>
-                  <ArrowUpRight className="ml-auto h-4 w-4 text-amber-500" />
-                </div>
-              </Link>
-            </div>
+            )}
           </Card>
         </Reveal>
       </div>

@@ -17,7 +17,8 @@ import { Modal, fieldClass, labelClass } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/components/app/auth";
 import { useApp, type Submission, type Priority } from "@/components/app/store";
-import { reportsOf, personById, initials } from "@/lib/org";
+import { initials } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { burstConfetti } from "@/lib/confetti";
 
 const textareaClass =
@@ -33,6 +34,7 @@ const statusTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
 export function LeadReviews() {
   const { user } = useAuth();
   const { tasks, submissions, reviewSubmission, assignTask } = useApp();
+  const { reportsOf, personById } = usePeople();
   const { toast } = useToast();
 
   const reports = reportsOf(user.id);

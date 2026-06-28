@@ -16,7 +16,8 @@ import { Card, CardHeader, Badge } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { useAuth } from "@/components/app/auth";
 import { useApp } from "@/components/app/store";
-import { reportsOf, personById, initials } from "@/lib/org";
+import { initials } from "@/lib/org";
+import { usePeople } from "@/components/app/people";
 import { recruitmentKpis, recruitmentFunnel, interviews } from "@/lib/data";
 
 const reqTone: Record<string, "amber" | "green" | "red"> = { Pending: "amber", Approved: "green", Rejected: "red" };
@@ -24,6 +25,7 @@ const reqTone: Record<string, "amber" | "green" | "red"> = { Pending: "amber", A
 export function HrHome() {
   const { user } = useAuth();
   const { requests } = useApp();
+  const { reportsOf, personById } = usePeople();
 
   const myReports = reportsOf(user.id);
   const myInitiated = requests.filter((r) => r.requesterId === user.id);
