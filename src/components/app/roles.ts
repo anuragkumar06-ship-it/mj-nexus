@@ -11,6 +11,7 @@ import {
   Video,
   BarChart3,
   UsersRound,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/org";
@@ -26,6 +27,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Work", href: "/dashboard/workspace", icon: Briefcase },
     { label: "Requests", href: "/dashboard/approvals", icon: Inbox },
+    { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
     { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
     { label: "Certificates", href: "/dashboard/certificates", icon: Award },
@@ -36,6 +38,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Tasks & Reviews", href: "/dashboard/workspace", icon: ListChecks },
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
+    { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
     { label: "Learning", href: "/dashboard/learning", icon: GraduationCap },
     { label: "Certificates", href: "/dashboard/certificates", icon: Award },
@@ -48,6 +51,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "Interviews", href: "/dashboard/interviews", icon: Video },
     { label: "Certificates", href: "/dashboard/certificates", icon: Award },
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
+    { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   ],
   management: [
@@ -55,6 +59,7 @@ export const roleNav: Record<Role, NavItem[]> = {
     { label: "People", href: "/dashboard/people", icon: UsersRound },
     { label: "Task Reviews", href: "/dashboard/workspace", icon: ListChecks },
     { label: "Approvals", href: "/dashboard/approvals", icon: Inbox },
+    { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { label: "Recruitment", href: "/dashboard/recruitment", icon: ScanSearch },
     { label: "Performance", href: "/dashboard/performance", icon: Gauge },
@@ -73,6 +78,7 @@ export const routeAccess: Record<string, Role[]> = {
   "/dashboard/interviews": ["hr", "management"],
   "/dashboard/analytics": ["hr", "management"],
   "/dashboard/learning": ["intern", "lead", "hr", "management"],
+  "/dashboard/attendance": ["intern", "lead", "hr", "management"],
   "/dashboard/certificates": ["intern", "lead", "hr", "management"],
   "/dashboard/approvals": ["intern", "lead", "hr", "management"],
   "/dashboard/performance": ["intern", "lead", "hr", "management"],
