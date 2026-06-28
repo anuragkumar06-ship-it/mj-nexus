@@ -60,22 +60,40 @@ function DRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Per-user, persisted set of "cleared" record ids (non-destructive — only hides them for you). */
-function useClearedSet(key: string) {
+/** Per-user "cleared" record ids, synced via the DB (org_settings) with a localStorage fallback. */
+function useClearedSet(userId: string, key: string, live: boolean) {
   const [ids, setIds] = useState<Set<string>>(() => new Set());
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) setIds(new Set(JSON.parse(raw)));
-    } catch {}
-  }, [key]);
+    let active = true;
+    (async () => {
+      if (live) {
+        try {
+          const { loadSetting } = await import("@/lib/supabase/attendance-data");
+          const raw = await loadSetting(`${key}:${userId}`);
+          if (active && raw) {
+            setIds(new Set(JSON.parse(raw)));
+            return;
+          }
+        } catch {}
+      }
+      try {
+        const raw = localStorage.getItem(`${key}_${userId}`);
+        if (active && raw) setIds(new Set(JSON.parse(raw)));
+      } catch {}
+    })();
+    return () => {
+      active = false;
+    };
+  }, [userId, key, live]);
   const clear = (add: string[]) => {
     setIds((prev) => {
       const n = new Set(prev);
       add.forEach((i) => n.add(i));
+      const arr = JSON.stringify([...n]);
       try {
-        localStorage.setItem(key, JSON.stringify([...n]));
+        localStorage.setItem(`${key}_${userId}`, arr);
       } catch {}
+      if (live) import("@/lib/supabase/attendance-data").then((m) => m.saveSetting(`${key}:${userId}`, arr)).catch(() => {});
       return n;
     });
   };
@@ -84,11 +102,11 @@ function useClearedSet(key: string) {
 
 export function ApprovalsView() {
   const { user, role } = useAuth();
-  const { requests, createRequest, decideRequest, updateRequest, deleteRequest } = useApp();
+  const { requests, createRequest, decideRequest, updateRequest, deleteRequest, live } = useApp();
   const { personById, people, updatePerson } = usePeople();
   const { toast } = useToast();
-  const [clearedDecisions, clearDecisions] = useClearedSet(`mj_cleared_decisions_${user.id}`);
-  const [clearedActivity, clearActivity] = useClearedSet(`mj_cleared_activity_${user.id}`);
+  const [clearedDecisions, clearDecisions] = useClearedSet(user.id, "cleared_decisions", live);
+  const [clearedActivity, clearActivity] = useClearedSet(user.id, "cleared_activity", live);
 
   const inbox = requests.filter((r) => r.approverId === user.id && r.status === "Pending");
   const history = requests.filter((r) => r.approverId === user.id && r.status !== "Pending" && !clearedDecisions.has(r.id));
@@ -111,7 +129,7 @@ export function ApprovalsView() {
 
   // Detail + decide modals
   const [detailReq, setDetailReq] = useState<ApprovalRequest | null>(null);
-  const [decideFor, setDecideFor] = useState<{ req: ApprovalRequest; decision: "Approved" | "Rejected" } | null>(null);
+  const [decideFor, setDecideFor] = useState<{ req: ApprovalRequest; decision: "Approved" | "Rejected" | "Changes" } | null>(null);
   const [granted, setGranted] = useState(LEAVE_TYPES[0]);
   const [decideNote, setDecideNote] = useState("");
 
@@ -189,7 +207,7 @@ export function ApprovalsView() {
     toast({ title: "Request deleted", type: "info" });
   };
 
-  const askDecide = (req: ApprovalRequest, decision: "Approved" | "Rejected") => {
+  const askDecide = (req: ApprovalRequest, decision: "Approved" | "Rejected" | "Changes") => {
     setDecideFor({ req, decision });
     setGranted(req.leaveType ?? LEAVE_TYPES[0]);
     setDecideNote("");
@@ -198,6 +216,14 @@ export function ApprovalsView() {
   const confirmDecide = () => {
     if (!decideFor) return;
     const { req, decision } = decideFor;
+    if (decision === "Changes") {
+      const msg = decideNote.trim() || "Please review and update this request.";
+      updateRequest(req.id, { followUp: msg });
+      if (live) import("@/lib/supabase/notifications-data").then((m) => m.notify(req.requesterId, `Changes requested on "${req.title}": ${msg}`, { type: "info", href: "/dashboard/approvals" })).catch(() => {});
+      toast({ title: "Changes requested", description: `Sent back to ${personById(req.requesterId)?.name} to update.`, type: "info" });
+      setDecideFor(null);
+      return;
+    }
     const isLeaveReq = !!req.leaveType || (!!req.fromDate && !!req.toDate);
     const bargained = isLeaveReq && req.leaveType && granted !== req.leaveType;
     const note = decideNote.trim() || (decision === "Approved" ? (bargained ? `Approved as ${granted} leave` : "Approved.") : "Not approved at this time.");
@@ -303,7 +329,7 @@ export function ApprovalsView() {
               {mine.map((r) => (
                 <div key={r.id} onClick={() => setDetailReq(r)} className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-navy/5 bg-offwhite/60 p-3.5 transition-colors hover:border-mjblue/20">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2"><Badge tone="navy">{r.type}</Badge>{r.files?.length ? <span className="flex items-center gap-0.5 text-[11px] text-slate-400"><Paperclip className="h-3 w-3" />{r.files.length}</span> : null}{r.status === "Pending" && <span className="text-[11px] font-medium text-mjblue">editable</span>}</div>
+                    <div className="flex items-center gap-2"><Badge tone="navy">{r.type}</Badge>{r.files?.length ? <span className="flex items-center gap-0.5 text-[11px] text-slate-400"><Paperclip className="h-3 w-3" />{r.files.length}</span> : null}{r.followUp && r.status === "Pending" ? <span className="text-[11px] font-semibold text-amber-600">changes requested</span> : r.status === "Pending" && <span className="text-[11px] font-medium text-mjblue">editable</span>}</div>
                     <p className="mt-1 truncate text-sm font-semibold text-navy">{r.title}</p>
                     <LeaveChip r={r} />
                     <p className="text-xs text-slate-500">to {personById(r.approverId)?.name}{r.decisionNote ? ` · ${r.decisionNote}` : ""}</p>
@@ -359,6 +385,7 @@ export function ApprovalsView() {
               <div className="flex gap-2">
                 {detailReq.approverId === user.id && detailReq.status === "Pending" && (
                   <>
+                    <Button variant="outline" size="sm" onClick={() => { const r = detailReq; setDetailReq(null); askDecide(r, "Changes"); }}><Pencil className="h-4 w-4" /> Changes</Button>
                     <Button variant="outline" size="sm" onClick={() => { const r = detailReq; setDetailReq(null); askDecide(r, "Rejected"); }}>Decline</Button>
                     <Button size="sm" onClick={() => { const r = detailReq; setDetailReq(null); askDecide(r, "Approved"); }}>Approve</Button>
                   </>
@@ -378,6 +405,12 @@ export function ApprovalsView() {
               </div>
               <Badge tone={statusTone[detailReq.status]}>{detailReq.status}</Badge>
             </div>
+            {detailReq.followUp && detailReq.status === "Pending" && (
+              <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-sm text-amber-700">
+                <span className="font-semibold">Changes requested:</span> {detailReq.followUp}
+                {detailReq.requesterId === user.id && <span className="mt-1 block text-xs text-amber-600">Tap Edit below to update and resubmit.</span>}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <DRow label="Type" value={detailReq.type} />
               {detailReq.leaveType && <DRow label="Leave type" value={detailReq.grantedType && detailReq.grantedType !== detailReq.leaveType ? `${detailReq.leaveType} → ${detailReq.grantedType}` : detailReq.leaveType} />}
@@ -410,10 +443,10 @@ export function ApprovalsView() {
       <Modal
         open={!!decideFor}
         onClose={() => setDecideFor(null)}
-        title={decideFor?.decision === "Approved" ? "Approve request" : "Decline request"}
+        title={decideFor?.decision === "Approved" ? "Approve request" : decideFor?.decision === "Changes" ? "Request changes" : "Decline request"}
         description={decideFor ? `${personById(decideFor.req.requesterId)?.name} · ${decideFor.req.title}` : ""}
-        icon={decideFor?.decision === "Approved" ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-        footer={<><Button variant="ghost" size="sm" onClick={() => setDecideFor(null)}>Cancel</Button><Button size="sm" onClick={confirmDecide}>{decideFor?.decision === "Approved" ? "Approve" : "Decline"}</Button></>}
+        icon={decideFor?.decision === "Approved" ? <Check className="h-5 w-5" /> : decideFor?.decision === "Changes" ? <Pencil className="h-5 w-5" /> : <X className="h-5 w-5" />}
+        footer={<><Button variant="ghost" size="sm" onClick={() => setDecideFor(null)}>Cancel</Button><Button size="sm" onClick={confirmDecide}>{decideFor?.decision === "Approved" ? "Approve" : decideFor?.decision === "Changes" ? "Send back" : "Decline"}</Button></>}
       >
         {decideFor && (
           <div className="space-y-4">
@@ -428,7 +461,12 @@ export function ApprovalsView() {
                 )}
               </div>
             )}
-            <div><label className={labelClass}>Note <span className="font-normal text-slate-400">(optional)</span></label><textarea rows={2} value={decideNote} onChange={(e) => setDecideNote(e.target.value)} placeholder="Add a note for the requester…" className={textareaClass} /></div>
+            <div>
+              <label className={labelClass}>
+                {decideFor.decision === "Changes" ? "What should they change?" : "Note"}{decideFor.decision !== "Changes" && <span className="font-normal text-slate-400"> (optional)</span>}
+              </label>
+              <textarea rows={3} value={decideNote} onChange={(e) => setDecideNote(e.target.value)} placeholder={decideFor.decision === "Changes" ? "e.g. I can only grant unpaid leave — please resubmit as unpaid." : "Add a note for the requester…"} className={textareaClass} />
+            </div>
           </div>
         )}
       </Modal>

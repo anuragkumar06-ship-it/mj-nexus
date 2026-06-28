@@ -61,6 +61,7 @@ export interface ApprovalRequest {
   reason?: string;
   leaveType?: string;
   grantedType?: string;
+  followUp?: string;
 }
 export interface Feedback {
   id: string;

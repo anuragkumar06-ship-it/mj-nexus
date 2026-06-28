@@ -15,10 +15,10 @@ import { AttendanceProvider, useAttendance } from "@/components/dashboard/attend
 import { cn } from "@/lib/utils";
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
-function lastDays(n: number) {
-  return Array.from({ length: n }, (_, i) => {
+function windowDays(offset: number) {
+  return Array.from({ length: 30 }, (_, i) => {
     const d = new Date();
-    d.setDate(d.getDate() - (n - 1 - i));
+    d.setDate(d.getDate() - 30 * offset - (29 - i));
     return d.toISOString().slice(0, 10);
   });
 }
@@ -40,7 +40,9 @@ function AttendanceView() {
   useEffect(() => setPctInput(minPct), [minPct]);
 
   const today = todayStr();
-  const days = lastDays(14);
+  const recent = windowDays(0);
+  const [offset, setOffset] = useState(0);
+  const viewDays = windowDays(offset);
   const approvedLeaves = requests.filter((r) => r.status === "Approved" && r.fromDate && r.toDate);
   const presentSet = new Set(records.filter((r) => r.status === "Present").map((r) => `${r.userId}_${r.date}`));
 
@@ -51,9 +53,9 @@ function AttendanceView() {
     if (date < today) return "Absent";
     return "—";
   };
-  const presentCount = (userId: string) => days.filter((d) => statusFor(userId, d) === "Present").length;
-  const leaveCount = (userId: string) => days.filter((d) => statusFor(userId, d) === "Leave").length;
-  const rate = (userId: string) => Math.round((presentCount(userId) / days.length) * 100);
+  const presentCount = (userId: string) => recent.filter((d) => statusFor(userId, d) === "Present").length;
+  const leaveCount = (userId: string) => recent.filter((d) => statusFor(userId, d) === "Leave").length;
+  const rate = (userId: string) => Math.round((presentCount(userId) / recent.length) * 100);
   const meets = (userId: string) => rate(userId) >= minPct;
 
   const myToday = statusFor(user.id, today);
@@ -103,8 +105,8 @@ function AttendanceView() {
             </button>
           )}
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{rate(user.id)}%</p><p className="text-xs text-slate-500">Attendance (14d)</p></div>
-            <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{leaveCount(user.id)}</p><p className="text-xs text-slate-500">Leave days (14d)</p></div>
+            <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{rate(user.id)}%</p><p className="text-xs text-slate-500">Attendance (30d)</p></div>
+            <div className="rounded-xl border border-navy/5 bg-offwhite/60 p-3 text-center"><p className="text-2xl font-bold text-navy">{leaveCount(user.id)}</p><p className="text-xs text-slate-500">Leave days (30d)</p></div>
           </div>
           {isManagement ? (
             <p className="mt-3 text-center text-[11px] text-slate-400">Management has no attendance requirement.</p>
@@ -116,22 +118,38 @@ function AttendanceView() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="My last 14 days" subtitle="Present · Leave · Absent" icon={<CalendarCheck className="h-5 w-5" />} />
-          <div className="flex flex-wrap gap-2">
-            {days.map((d) => {
+          <CardHeader
+            title="My attendance"
+            subtitle={`${viewDays[0]} → ${viewDays[viewDays.length - 1]}`}
+            icon={<CalendarCheck className="h-5 w-5" />}
+            action={
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setOffset((o) => o + 1)} className="grid h-7 w-7 place-items-center rounded-lg border border-navy/10 bg-white text-navy/60 transition-colors hover:text-navy" aria-label="Earlier 30 days">‹</button>
+                <span className="min-w-[60px] text-center text-[11px] text-slate-400">{offset === 0 ? "This month" : `${offset} mo ago`}</span>
+                <button onClick={() => setOffset((o) => Math.max(0, o - 1))} disabled={offset === 0} className="grid h-7 w-7 place-items-center rounded-lg border border-navy/10 bg-white text-navy/60 transition-colors hover:text-navy disabled:opacity-40" aria-label="Later 30 days">›</button>
+              </div>
+            }
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {viewDays.map((d) => {
               const st = statusFor(user.id, d);
               return (
                 <div key={d} className="flex flex-col items-center gap-1">
-                  <div className={cn("h-9 w-9 rounded-lg", STATUS_TONE[st])} title={`${d} · ${st}`} />
+                  <div className={cn("h-8 w-8 rounded-lg", STATUS_TONE[st], d > today && "opacity-30")} title={`${d} · ${st}`} />
                   <span className="text-[9px] text-slate-400">{d.slice(8)}</span>
                 </div>
               );
             })}
           </div>
-          <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-slate-500">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Present</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Leave</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-300" /> Absent</span>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-500">
+            <div className="flex flex-wrap gap-3">
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Present</span>
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Leave</span>
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-300" /> Absent</span>
+            </div>
+            <span className="font-medium text-navy">
+              {viewDays.filter((d) => statusFor(user.id, d) === "Present").length} present · {viewDays.filter((d) => statusFor(user.id, d) === "Leave").length} leave
+            </span>
           </div>
         </Card>
       </div>
@@ -146,7 +164,7 @@ function AttendanceView() {
                 <tr className="border-b border-navy/5 text-xs uppercase tracking-wider text-slate-400">
                   <th className="pb-3 font-semibold">Person</th>
                   <th className="pb-3 font-semibold">Today</th>
-                  <th className="pb-3 font-semibold">Last 14 days</th>
+                  <th className="pb-3 font-semibold">Last 30 days</th>
                   <th className="pb-3 font-semibold">Status</th>
                   <th className="pb-3 text-right font-semibold">Attendance</th>
                 </tr>
@@ -165,7 +183,7 @@ function AttendanceView() {
                       <td className="py-3"><Badge tone={st === "Present" ? "green" : st === "Leave" ? "amber" : st === "Absent" ? "red" : "navy"}>{st === "—" ? "Pending" : st}</Badge></td>
                       <td className="py-3">
                         <div className="flex gap-1">
-                          {days.map((d) => <span key={d} className={cn("h-4 w-2 rounded-sm", STATUS_TONE[statusFor(p.id, d)])} title={`${d} · ${statusFor(p.id, d)}`} />)}
+                          {recent.map((d) => <span key={d} className={cn("h-4 w-1.5 rounded-sm", STATUS_TONE[statusFor(p.id, d)])} title={`${d} · ${statusFor(p.id, d)}`} />)}
                         </div>
                       </td>
                       <td className="py-3"><Badge tone={meets(p.id) ? "green" : "red"}>{meets(p.id) ? "On track" : `Below ${minPct}%`}</Badge></td>
