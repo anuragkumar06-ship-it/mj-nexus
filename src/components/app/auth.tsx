@@ -104,6 +104,19 @@ function LiveAuth({ children }: { children: ReactNode }) {
         } catch {
           // no profile row yet — stays a clean intern
         }
+        // Auto-link: if this email was added as a candidate, adopt their name.
+        try {
+          const em = session.user.email;
+          const defaultName = (em ?? "").split("@")[0];
+          if (em && (!base.name || base.name === defaultName)) {
+            const { data: cands } = await supabase.from("candidates").select("name").ilike("email", em).limit(1);
+            const candName = cands?.[0]?.name as string | undefined;
+            if (candName) {
+              base.name = candName;
+              await supabase.from("profiles").update({ name: candName }).eq("id", session.user.id);
+            }
+          }
+        } catch {}
         if (active) {
           setPerson(base);
           setLoading(false);

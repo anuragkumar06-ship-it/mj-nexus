@@ -63,13 +63,15 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       if (!live) return;
       try {
         const { updateProfile } = await import("@/lib/supabase/profiles");
-        await updateProfile(id, {
-          role: patch.role as Role | undefined,
-          team: patch.team ?? null,
-          managerId: patch.managerId ?? null,
-          title: patch.title ?? null,
-          name: patch.name,
-        });
+        const db: Record<string, unknown> = {};
+        if (patch.role !== undefined) db.role = patch.role;
+        if (patch.team !== undefined) db.team = patch.team;
+        if (patch.managerId !== undefined) db.managerId = patch.managerId;
+        if (patch.title !== undefined) db.title = patch.title;
+        if (patch.name !== undefined) db.name = patch.name;
+        if (patch.internStart !== undefined) db.internStart = patch.internStart;
+        if (patch.internEnd !== undefined) db.internEnd = patch.internEnd;
+        await updateProfile(id, db);
       } catch {}
     },
     [live]

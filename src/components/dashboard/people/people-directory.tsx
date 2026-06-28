@@ -48,7 +48,7 @@ export function PeopleDirectory() {
   const [query, setQuery] = useState("");
   const [selId, setSelId] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const [nf, setNf] = useState<{ name: string; email: string; role: Role; team: string }>({ name: "", email: "", role: "intern", team: "" });
+  const [nf, setNf] = useState<{ name: string; email: string; role: Role; team: string; start: string; end: string }>({ name: "", email: "", role: "intern", team: "", start: "", end: "" });
 
   const directory = people.filter(
     (p) => (tab === "all" ? p.role !== "management" : p.role === tab) && p.name.toLowerCase().includes(query.toLowerCase())
@@ -78,9 +78,77 @@ export function PeopleDirectory() {
     updatePerson(id, { team });
     toast({ title: "Team updated", type: "success" });
   };
+  const setDate = (id: string, patch: { internStart?: string; internEnd?: string }) => {
+    updatePerson(id, patch);
+    toast({ title: "Internship duration updated", type: "success" });
+  };
+  const doAdd = () => {
+    if (!nf.name.trim()) {
+      toast({ title: "Enter a name", type: "error" });
+      return;
+    }
+    const id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `p${Date.now()}`;
+    addPerson({
+      id,
+      name: nf.name.trim(),
+      email: nf.email.trim(),
+      phone: "",
+      role: nf.role,
+      title: ROLE_META[nf.role].label,
+      team: nf.team.trim() || undefined,
+      joined: new Date().toISOString().slice(0, 10),
+      internStart: nf.start || undefined,
+      internEnd: nf.end || undefined,
+    });
+    toast({ title: "Person added", description: `${nf.name.trim()} added to the organization${nf.team.trim() ? ` (${nf.team.trim()})` : ""}.`, type: "success" });
+    setNf({ name: "", email: "", role: "intern", team: "", start: "", end: "" });
+    setAddOpen(false);
+  };
+  const doRemove = (id: string, name: string) => {
+    if (id === user.id) {
+      toast({ title: "You can't remove yourself", type: "error" });
+      return;
+    }
+    if (typeof window !== "undefined" && !window.confirm(`Remove ${name} from the organization? This deletes their profile.`)) return;
+    removePerson(id);
+    toast({ title: "Removed", description: `${name} was removed from the organization.`, type: "info" });
+    setSelId("");
+  };
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Organization directory</p>
+        <Button size="sm" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add person</Button>
+      </div>
+
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Add a person"
+        description="Add a team member. When they sign in with this email, their account links automatically."
+        icon={<Plus className="h-5 w-5" />}
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button size="sm" onClick={doAdd}><Plus className="h-4 w-4" /> Add person</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div><label className={labelClass}>Full name</label><input autoFocus value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} placeholder="e.g. Priya Sharma" className={fieldClass} /></div>
+          <div><label className={labelClass}>Email <span className="font-normal text-slate-400">(used to auto-link their login)</span></label><input type="email" value={nf.email} onChange={(e) => setNf({ ...nf, email: e.target.value })} placeholder="name@company.com" className={fieldClass} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={labelClass}>Role</label><select value={nf.role} onChange={(e) => setNf({ ...nf, role: e.target.value as Role })} className={fieldClass}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}</select></div>
+            <div><label className={labelClass}>Team</label><input value={nf.team} onChange={(e) => setNf({ ...nf, team: e.target.value })} placeholder="e.g. Growth" className={fieldClass} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={labelClass}>Internship start</label><input type="date" value={nf.start} onChange={(e) => setNf({ ...nf, start: e.target.value })} className={fieldClass} /></div>
+            <div><label className={labelClass}>Internship end</label><input type="date" value={nf.end} onChange={(e) => setNf({ ...nf, end: e.target.value })} className={fieldClass} /></div>
+          </div>
+        </div>
+      </Modal>
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summaryKpis.map((k, i) => (
           <Reveal key={k.label} delay={0.05 * i}>
@@ -134,7 +202,10 @@ export function PeopleDirectory() {
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                         <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {sel.email}</span>
                         {sel.phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {sel.phone}</span>}
-                        {sel.joined && <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {sel.joined}</span>}
+                        {sel.joined && <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> joined {sel.joined}</span>}
+                        {(sel.internStart || sel.internEnd) && (
+                          <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> internship {sel.internStart ?? "—"} → {sel.internEnd ?? "—"}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -166,6 +237,21 @@ export function PeopleDirectory() {
                       {managerOptions.filter((m) => m.id !== sel.id).map((m) => <option key={m.id} value={m.id}>{m.name} ({ROLE_META[m.role].short})</option>)}
                     </select>
                   </div>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>Internship start</label>
+                    <input type="date" key={sel.id + "-s"} defaultValue={sel.internStart ?? ""} onBlur={(e) => { if (e.target.value !== (sel.internStart ?? "")) setDate(sel.id, { internStart: e.target.value }); }} className={fieldClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Internship end</label>
+                    <input type="date" key={sel.id + "-e"} defaultValue={sel.internEnd ?? ""} onBlur={(e) => { if (e.target.value !== (sel.internEnd ?? "")) setDate(sel.id, { internEnd: e.target.value }); }} className={fieldClass} />
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button onClick={() => doRemove(sel.id, sel.name)} disabled={sel.id === user.id} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    <Trash2 className="h-3.5 w-3.5" /> Remove from organization
+                  </button>
                 </div>
               </Card>
 

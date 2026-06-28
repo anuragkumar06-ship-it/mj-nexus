@@ -51,6 +51,8 @@ export interface Person {
   attendance?: number;
   tasksDone?: number;
   tasksTotal?: number;
+  internStart?: string;
+  internEnd?: string;
   joined: string;
 }
 

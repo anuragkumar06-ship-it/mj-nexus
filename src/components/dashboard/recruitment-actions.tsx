@@ -20,6 +20,7 @@ export function AddCandidateButton() {
   const [state, setState] = useState("");
   const [source, setSource] = useState<Candidate["source"]>("LinkedIn");
   const [skills, setSkills] = useState("");
+  const [email, setEmail] = useState("");
 
   const reset = () => {
     setName("");
@@ -28,6 +29,7 @@ export function AddCandidateButton() {
     setState("");
     setSource("LinkedIn");
     setSkills("");
+    setEmail("");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -47,7 +49,7 @@ export function AddCandidateButton() {
       skills: skills.trim()
         ? skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 5)
         : ["General"],
-      email: `${name.trim().toLowerCase().replace(/\s+/g, ".")}@example.com`,
+      email: email.trim() || `${name.trim().toLowerCase().replace(/\s+/g, ".")}@example.com`,
     };
     addCandidate(c);
     burstConfetti();
@@ -93,6 +95,10 @@ export function AddCandidateButton() {
               placeholder="e.g. Priya Sharma"
               className={fieldClass}
             />
+          </div>
+          <div>
+            <label className={labelClass}>Email <span className="font-normal text-slate-400">(auto-links when they log in)</span></label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="candidate@email.com" className={fieldClass} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
