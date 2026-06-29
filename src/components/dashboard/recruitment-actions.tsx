@@ -189,7 +189,7 @@ export function ExportCandidatesButton() {
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(",")
     );
-    downloadFile(`mj-nexus-candidates-${new Date().toISOString().slice(0, 10)}.csv`, [headers.join(","), ...rows].join("\n"), "text/csv;charset=utf-8");
+    downloadFile(`nexus-talent-os-candidates-${new Date().toISOString().slice(0, 10)}.csv`, [headers.join(","), ...rows].join("\n"), "text/csv;charset=utf-8");
     toast({
       title: "Export ready",
       description: `Downloaded ${candidates.length} candidates as CSV.`,

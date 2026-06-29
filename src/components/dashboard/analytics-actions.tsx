@@ -27,7 +27,7 @@ export function AnalyticsActions() {
     sourceEffectiveness.forEach((s) => lines.push(`${s.source},${s.applicants},${s.hires}`));
 
     downloadFile(
-      `mj-nexus-analytics-${new Date().toISOString().slice(0, 10)}.csv`,
+      `nexus-talent-os-analytics-${new Date().toISOString().slice(0, 10)}.csv`,
       lines.join("\n"),
       "text/csv;charset=utf-8"
     );
